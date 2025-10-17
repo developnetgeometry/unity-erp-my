@@ -5,9 +5,12 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import PublicLayout from "./components/layouts/PublicLayout";
 import AuthenticatedLayout from "./components/layouts/AuthenticatedLayout";
+import ProtectedRoute from "./components/ProtectedRoute";
 import Landing from "./pages/Landing";
 import Register from "./pages/Register";
 import SignIn from "./pages/SignIn";
+import VerifyInstructions from "./pages/VerifyInstructions";
+import Verify from "./pages/Verify";
 import Dashboard from "./pages/Dashboard";
 import HRDashboard from "./pages/hr/Dashboard";
 import EmployeeManagement from "./pages/hr/EmployeeManagement";
@@ -38,34 +41,36 @@ const App = () => (
             <Route path="/" element={<Landing />} />
             <Route path="/register" element={<Register />} />
             <Route path="/signin" element={<SignIn />} />
+            <Route path="/verify-instructions" element={<VerifyInstructions />} />
+            <Route path="/verify" element={<Verify />} />
           </Route>
 
           {/* Authenticated Routes */}
           <Route element={<AuthenticatedLayout />}>
-            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             
             {/* People & HR Routes */}
-            <Route path="/hr/dashboard" element={<HRDashboard />} />
-            <Route path="/hr/employee-management" element={<EmployeeManagement />} />
-            <Route path="/hr/department-management" element={<DepartmentManagement />} />
-            <Route path="/hr/attendance-management" element={<AttendanceManagement />} />
-            <Route path="/hr/leave-management" element={<LeaveManagement />} />
-            <Route path="/hr/payroll-management" element={<PayrollManagement />} />
-            <Route path="/hr/compliance-dashboard" element={<ComplianceDashboard />} />
-            <Route path="/hr/bulk-import" element={<BulkImport />} />
-            <Route path="/hr/user-invitations" element={<UserInvitations />} />
+            <Route path="/hr/dashboard" element={<ProtectedRoute><HRDashboard /></ProtectedRoute>} />
+            <Route path="/hr/employee-management" element={<ProtectedRoute><EmployeeManagement /></ProtectedRoute>} />
+            <Route path="/hr/department-management" element={<ProtectedRoute><DepartmentManagement /></ProtectedRoute>} />
+            <Route path="/hr/attendance-management" element={<ProtectedRoute><AttendanceManagement /></ProtectedRoute>} />
+            <Route path="/hr/leave-management" element={<ProtectedRoute><LeaveManagement /></ProtectedRoute>} />
+            <Route path="/hr/payroll-management" element={<ProtectedRoute><PayrollManagement /></ProtectedRoute>} />
+            <Route path="/hr/compliance-dashboard" element={<ProtectedRoute><ComplianceDashboard /></ProtectedRoute>} />
+            <Route path="/hr/bulk-import" element={<ProtectedRoute><BulkImport /></ProtectedRoute>} />
+            <Route path="/hr/user-invitations" element={<ProtectedRoute><UserInvitations /></ProtectedRoute>} />
             
             {/* Finance Routes */}
-            <Route path="/finance/dashboard" element={<FinanceDashboard />} />
+            <Route path="/finance/dashboard" element={<ProtectedRoute><FinanceDashboard /></ProtectedRoute>} />
             
             {/* Inventory Routes */}
-            <Route path="/inventory/items" element={<Inventory />} />
+            <Route path="/inventory/items" element={<ProtectedRoute><Inventory /></ProtectedRoute>} />
             
             {/* Project Routes */}
-            <Route path="/projects" element={<Projects />} />
+            <Route path="/projects" element={<ProtectedRoute><Projects /></ProtectedRoute>} />
             
             {/* Admin Routes */}
-            <Route path="/admin/company" element={<Company />} />
+            <Route path="/admin/company" element={<ProtectedRoute><Company /></ProtectedRoute>} />
           </Route>
           
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

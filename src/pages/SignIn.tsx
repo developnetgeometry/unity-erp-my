@@ -33,35 +33,72 @@ const SignIn = () => {
     setIsLoading(true);
     
     try {
-      // Mock authentication - check localStorage for registered users
-      const registeredUser = localStorage.getItem("erpone_user");
+      const { supabase } = await import("@/integrations/supabase/client");
       
-      if (registeredUser) {
-        const user = JSON.parse(registeredUser);
+      // Sign in with Supabase
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+        email: data.email,
+        password: data.password,
+      });
+
+      if (authError) {
+        console.error("Sign in error:", authError);
         
-        if (user.adminEmail === data.email) {
-          // Successful login - mock authentication only checks email
-          localStorage.setItem("currentUser", JSON.stringify({
-            email: user.adminEmail,
-            name: user.adminName,
-            companyName: user.companyName,
-          }));
-          
-          toast.success("✅ Welcome back to ERPOne!");
-          navigate("/dashboard");
+        if (authError.message.includes("Invalid login credentials")) {
+          toast.error("Invalid credentials", {
+            description: "Please check your email and password."
+          });
         } else {
-          toast.error("⚠️ Invalid email or password", {
-            description: "Please check your credentials and try again.",
+          toast.error("Sign in failed", {
+            description: authError.message
           });
         }
-      } else {
-        toast.error("⚠️ Invalid email or password", {
-          description: "Please check your credentials and try again.",
-        });
+        return;
       }
-    } catch (error) {
+
+      if (!authData.user) {
+        toast.error("Sign in failed", {
+          description: "Please try again."
+        });
+        return;
+      }
+
+      // Check if email is verified
+      const { data: profile, error: profileError } = await supabase
+        .from("profiles")
+        .select("email_verified, status, full_name")
+        .eq("id", authData.user.id)
+        .single();
+
+      if (profileError) {
+        console.error("Profile query error:", profileError);
+      }
+
+      if (!profile?.email_verified) {
+        // Sign out the user
+        await supabase.auth.signOut();
+        
+        toast.error("Email not verified", {
+          description: "Please verify your email before signing in. Check your inbox for the verification link."
+        });
+        return;
+      }
+
+      if (profile.status !== "active") {
+        await supabase.auth.signOut();
+        
+        toast.error("Account not active", {
+          description: "Please contact support."
+        });
+        return;
+      }
+
+      toast.success(`Welcome back, ${profile.full_name}!`);
+      navigate("/dashboard");
+    } catch (error: any) {
+      console.error("Sign in error:", error);
       toast.error("Something went wrong", {
-        description: "Please try again later.",
+        description: "Please try again later."
       });
     } finally {
       setIsLoading(false);

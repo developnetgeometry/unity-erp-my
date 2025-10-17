@@ -112,11 +112,16 @@ export function AppSidebar() {
   const isCollapsed = state === "collapsed";
   const navigate = useNavigate();
 
-  const handleLogout = () => {
-    localStorage.removeItem("erpone_user");
-    localStorage.removeItem("currentUser");
-    toast.success("Logged out successfully");
-    navigate("/signin");
+  const handleLogout = async () => {
+    try {
+      const { supabase } = await import("@/integrations/supabase/client");
+      await supabase.auth.signOut();
+      toast.success("Logged out successfully");
+      navigate("/signin");
+    } catch (error) {
+      console.error("Logout error:", error);
+      toast.error("Logout failed");
+    }
   };
 
   return (

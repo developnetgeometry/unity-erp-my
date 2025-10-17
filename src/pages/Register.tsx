@@ -11,8 +11,17 @@ import { Building2, ArrowLeft, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 const registerSchema = z.object({
+  // Company Information
   companyName: z.string().trim().min(2, "Company name must be at least 2 characters").max(100, "Company name must be less than 100 characters"),
-  email: z.string().trim().email("Please enter a valid email address").max(255, "Email must be less than 255 characters"),
+  registrationNo: z.string().trim().min(5, "Registration number is required").max(50, "Registration number is too long"),
+  companyEmail: z.string().trim().email("Please enter a valid email address").max(255, "Email must be less than 255 characters"),
+  phone: z.string().trim().min(10, "Please enter a valid phone number").max(20, "Phone number is too long"),
+  businessType: z.string().min(1, "Please select a business type"),
+  address: z.string().trim().min(10, "Address must be at least 10 characters").max(500, "Address is too long"),
+  
+  // Admin Account
+  adminName: z.string().trim().min(2, "Full name must be at least 2 characters").max(100, "Name is too long"),
+  adminEmail: z.string().trim().email("Please enter a valid email address").max(255, "Email must be less than 255 characters"),
   password: z.string().min(8, "Password must be at least 8 characters"),
   confirmPassword: z.string()
 }).refine((data) => data.password === data.confirmPassword, {
@@ -30,7 +39,13 @@ const Register = () => {
     resolver: zodResolver(registerSchema),
     defaultValues: {
       companyName: "",
-      email: "",
+      registrationNo: "",
+      companyEmail: "",
+      phone: "",
+      businessType: "",
+      address: "",
+      adminName: "",
+      adminEmail: "",
       password: "",
       confirmPassword: ""
     }
@@ -40,27 +55,87 @@ const Register = () => {
     setIsLoading(true);
     
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      const { supabase } = await import("@/integrations/supabase/client");
       
-      // Store mock user data
-      localStorage.setItem('erpone_user', JSON.stringify({
-        companyName: data.companyName,
-        email: data.email,
-        registeredAt: new Date().toISOString()
-      }));
-      
-      toast.success("Company registered successfully!", {
-        description: "Welcome to ERPOne. Redirecting to dashboard..."
+      // Step 1: Create company record first
+      const { data: companyData, error: companyError } = await supabase
+        .from("companies")
+        .insert({
+          company_name: data.companyName,
+          registration_no: data.registrationNo,
+          email: data.companyEmail,
+          phone: data.phone,
+          business_type: data.businessType,
+          address: data.address,
+          status: "active"
+        })
+        .select()
+        .single();
+
+      if (companyError) {
+        console.error("Company creation error:", companyError);
+        throw new Error("Failed to create company record");
+      }
+
+      // Step 2: Sign up the admin user with Supabase Auth
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: data.adminEmail,
+        password: data.password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/verify`,
+          data: {
+            company_id: companyData.id,
+            full_name: data.adminName,
+          }
+        }
+      });
+
+      if (authError) {
+        console.error("Auth error:", authError);
+        // Clean up company if user creation fails
+        await supabase.from("companies").delete().eq("id", companyData.id);
+        throw new Error(authError.message);
+      }
+
+      if (!authData.user) {
+        throw new Error("User creation failed");
+      }
+
+      // Step 3: Assign company_admin role
+      const { error: roleError } = await supabase
+        .from("user_roles")
+        .insert({
+          user_id: authData.user.id,
+          role: "company_admin"
+        });
+
+      if (roleError) {
+        console.error("Role assignment error:", roleError);
+      }
+
+      // Step 4: Send verification email
+      const { error: emailError } = await supabase.functions.invoke("send-verification-email", {
+        body: {
+          userId: authData.user.id,
+          email: data.adminEmail,
+          fullName: data.adminName
+        }
+      });
+
+      if (emailError) {
+        console.error("Email sending error:", emailError);
+      }
+
+      toast.success("Registration successful!", {
+        description: "Please check your email to verify your account."
       });
       
-      // Redirect to dashboard
-      setTimeout(() => {
-        navigate('/dashboard');
-      }, 1000);
-    } catch (error) {
+      // Redirect to verification instructions page
+      navigate("/verify-instructions");
+    } catch (error: any) {
+      console.error("Registration error:", error);
       toast.error("Registration failed", {
-        description: "Something went wrong. Please try again."
+        description: error.message || "Something went wrong. Please try again."
       });
     } finally {
       setIsLoading(false);
@@ -90,62 +165,172 @@ const Register = () => {
           </CardHeader>
           <CardContent>
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="companyName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Company Name</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter your company name" {...field} disabled={isLoading} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Business Email</FormLabel>
-                      <FormControl>
-                        <Input type="email" placeholder="you@company.com" {...field} disabled={isLoading} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Password</FormLabel>
-                      <FormControl>
-                        <Input type="password" placeholder="Create a password" {...field} disabled={isLoading} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="confirmPassword"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Confirm Password</FormLabel>
-                      <FormControl>
-                        <Input type="password" placeholder="Confirm your password" {...field} disabled={isLoading} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                {/* Company Information Section */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold">Company Information</h3>
+                  
+                  <FormField
+                    control={form.control}
+                    name="companyName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Company Name *</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Acme Sdn Bhd" {...field} disabled={isLoading} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="registrationNo"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Business Registration No. (SSM) *</FormLabel>
+                        <FormControl>
+                          <Input placeholder="201901234567" {...field} disabled={isLoading} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="companyEmail"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Company Email *</FormLabel>
+                        <FormControl>
+                          <Input type="email" placeholder="info@company.com" {...field} disabled={isLoading} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="phone"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Phone Number *</FormLabel>
+                        <FormControl>
+                          <Input type="tel" placeholder="+60123456789" {...field} disabled={isLoading} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="businessType"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Business Type *</FormLabel>
+                        <FormControl>
+                          <select 
+                            {...field} 
+                            disabled={isLoading}
+                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                          >
+                            <option value="">Select business type</option>
+                            <option value="Sole Proprietor">Sole Proprietor</option>
+                            <option value="Partnership">Partnership</option>
+                            <option value="Private Limited (Sdn Bhd)">Private Limited (Sdn Bhd)</option>
+                            <option value="Cooperative">Cooperative</option>
+                          </select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="address"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Company Address *</FormLabel>
+                        <FormControl>
+                          <textarea 
+                            {...field} 
+                            disabled={isLoading}
+                            placeholder="Enter your registered business address"
+                            rows={3}
+                            className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                {/* Admin Account Section */}
+                <div className="space-y-4 pt-6 border-t">
+                  <h3 className="text-lg font-semibold">Admin Account Setup</h3>
+                  
+                  <FormField
+                    control={form.control}
+                    name="adminName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Full Name *</FormLabel>
+                        <FormControl>
+                          <Input placeholder="John Doe" {...field} disabled={isLoading} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="adminEmail"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Email *</FormLabel>
+                        <FormControl>
+                          <Input type="email" placeholder="john@company.com" {...field} disabled={isLoading} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="password"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Password *</FormLabel>
+                        <FormControl>
+                          <Input type="password" placeholder="Create a password (min 8 characters)" {...field} disabled={isLoading} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="confirmPassword"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Confirm Password *</FormLabel>
+                        <FormControl>
+                          <Input type="password" placeholder="Confirm your password" {...field} disabled={isLoading} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
                 
                 <Button type="submit" className="w-full" size="lg" disabled={isLoading}>
                   {isLoading ? (
