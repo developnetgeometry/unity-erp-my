@@ -72,9 +72,37 @@ const Register = () => {
         },
       });
 
-      // Check if we have detailed error information from the edge function
-      if (error && !result) {
+      // Parse error response from the edge function
+      // When edge function returns non-2xx status, data contains the error response
+      if (error) {
         console.error("Registration error:", error);
+        // If we have result data, it contains the detailed error from edge function
+        if (result && !result?.success) {
+          const errorMsg = result?.error || "Registration failed";
+          const detailedMsg = result?.message || errorMsg;
+          const errorAction = result?.action;
+          
+          // Handle specific error cases
+          if (errorMsg.includes("email already exists") || errorAction === "signin") {
+            toast.error("Account Already Exists", {
+              description: detailedMsg,
+              action: {
+                label: "Sign In",
+                onClick: () => navigate("/signin")
+              }
+            });
+          } else if (errorMsg.includes("registration number is already in use")) {
+            toast.error("Company Already Registered", {
+              description: detailedMsg
+            });
+          } else {
+            toast.error("Registration Failed", {
+              description: detailedMsg
+            });
+          }
+          return;
+        }
+        // If no result data, throw generic error
         throw new Error(error.message || "Failed to register company");
       }
 
