@@ -72,7 +72,8 @@ const Register = () => {
         },
       });
 
-      if (error) {
+      // Check if we have detailed error information from the edge function
+      if (error && !result) {
         console.error("Registration error:", error);
         throw new Error(error.message || "Failed to register company");
       }
