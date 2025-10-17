@@ -57,73 +57,29 @@ const Register = () => {
     try {
       const { supabase } = await import("@/integrations/supabase/client");
       
-      // Step 1: Create company record first
-      const { data: companyData, error: companyError } = await supabase
-        .from("companies")
-        .insert({
-          company_name: data.companyName,
-          registration_no: data.registrationNo,
-          email: data.companyEmail,
-          phone: data.phone,
-          business_type: data.businessType,
-          address: data.address,
-          status: "active"
-        })
-        .select()
-        .single();
-
-      if (companyError) {
-        console.error("Company creation error:", companyError);
-        throw new Error("Failed to create company record");
-      }
-
-      // Step 2: Sign up the admin user with Supabase Auth
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: data.adminEmail,
-        password: data.password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/verify`,
-          data: {
-            company_id: companyData.id,
-            full_name: data.adminName,
-          }
-        }
-      });
-
-      if (authError) {
-        console.error("Auth error:", authError);
-        // Clean up company if user creation fails
-        await supabase.from("companies").delete().eq("id", companyData.id);
-        throw new Error(authError.message);
-      }
-
-      if (!authData.user) {
-        throw new Error("User creation failed");
-      }
-
-      // Step 3: Assign company_admin role
-      const { error: roleError } = await supabase
-        .from("user_roles")
-        .insert({
-          user_id: authData.user.id,
-          role: "company_admin"
-        });
-
-      if (roleError) {
-        console.error("Role assignment error:", roleError);
-      }
-
-      // Step 4: Send verification email
-      const { error: emailError } = await supabase.functions.invoke("send-verification-email", {
+      // Call the register-company edge function
+      const { data: result, error } = await supabase.functions.invoke('register-company', {
         body: {
-          userId: authData.user.id,
-          email: data.adminEmail,
-          fullName: data.adminName
-        }
+          companyName: data.companyName,
+          registrationNo: data.registrationNo,
+          companyEmail: data.companyEmail,
+          phone: data.phone,
+          businessType: data.businessType,
+          address: data.address,
+          adminName: data.adminName,
+          adminEmail: data.adminEmail,
+          password: data.password,
+        },
       });
 
-      if (emailError) {
-        console.error("Email sending error:", emailError);
+      if (error) {
+        console.error("Registration error:", error);
+        throw new Error(error.message || "Failed to register company");
+      }
+
+      if (!result?.success) {
+        console.error("Registration failed:", result?.error);
+        throw new Error(result?.error || "Registration failed");
       }
 
       toast.success("Registration successful!", {
