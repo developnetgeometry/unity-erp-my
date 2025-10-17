@@ -33,26 +33,16 @@ const employees = [
     phone: "+60 12-234 5678",
     status: "Active",
   },
-  {
-    id: 4,
-    name: "Raj Kumar",
-    position: "Project Manager",
-    department: "Operations",
-    email: "raj.k@company.com",
-    phone: "+60 12-456 7890",
-    status: "On Leave",
-  },
 ];
 
-const Employees = () => {
+const EmployeeManagement = () => {
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Employee Directory</h1>
+          <h1 className="text-3xl font-bold text-foreground">Employee Management</h1>
           <p className="text-muted-foreground">
-            Manage your workforce and employee information
+            View, search, and manage employee profiles, positions, and employment status
           </p>
         </div>
         <Button className="bg-primary hover:bg-primary/90">
@@ -61,7 +51,6 @@ const Employees = () => {
         </Button>
       </div>
 
-      {/* Search and Filters */}
       <Card>
         <CardContent className="pt-6">
           <div className="flex gap-4">
@@ -80,7 +69,6 @@ const Employees = () => {
         </CardContent>
       </Card>
 
-      {/* Employee Cards */}
       <div className="grid gap-4 md:grid-cols-2">
         {employees.map((employee) => (
           <Card key={employee.id} className="hover:shadow-md transition-shadow">
@@ -123,14 +111,7 @@ const Employees = () => {
                 </div>
                 <div className="flex items-center justify-between pt-2 border-t border-border">
                   <span className="text-sm text-muted-foreground">Status</span>
-                  <Badge
-                    variant={employee.status === "Active" ? "default" : "outline"}
-                    className={
-                      employee.status === "Active"
-                        ? "bg-secondary text-secondary-foreground"
-                        : ""
-                    }
-                  >
+                  <Badge variant="default" className="bg-secondary text-secondary-foreground">
                     {employee.status}
                   </Badge>
                 </div>
@@ -139,44 +120,8 @@ const Employees = () => {
           </Card>
         ))}
       </div>
-
-      {/* Summary Stats */}
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card>
-          <CardContent className="pt-6">
-            <div className="text-center">
-              <p className="text-3xl font-bold text-primary">248</p>
-              <p className="text-sm text-muted-foreground mt-1">Total Employees</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <div className="text-center">
-              <p className="text-3xl font-bold text-secondary">12</p>
-              <p className="text-sm text-muted-foreground mt-1">New This Month</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <div className="text-center">
-              <p className="text-3xl font-bold text-accent">8</p>
-              <p className="text-sm text-muted-foreground mt-1">On Leave</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <div className="text-center">
-              <p className="text-3xl font-bold text-foreground">15</p>
-              <p className="text-sm text-muted-foreground mt-1">Departments</p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
     </div>
   );
 };
 
-export default Employees;
+export default EmployeeManagement;

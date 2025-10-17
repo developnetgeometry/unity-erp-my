@@ -7,7 +7,16 @@ import {
   LayoutDashboard,
   ChevronDown,
   LogOut,
-  User
+  User,
+  UserCog,
+  BadgeCheck,
+  Building2,
+  Clock,
+  CalendarCheck,
+  Wallet,
+  ShieldCheck,
+  Upload,
+  Mail
 } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import {
@@ -40,14 +49,18 @@ const modules = [
     url: "/",
   },
   {
-    title: "Human Resources",
+    title: "People & HR",
     icon: Users,
     items: [
-      { title: "Employees", url: "/hr/employees" },
-      { title: "Payroll", url: "/hr/payroll" },
-      { title: "Leave Management", url: "/hr/leave" },
-      { title: "Attendance", url: "/hr/attendance" },
-      { title: "Statutory Reports", url: "/hr/statutory" },
+      { title: "HR Dashboard", icon: UserCog, url: "/hr/dashboard" },
+      { title: "Employee Management", icon: BadgeCheck, url: "/hr/employee-management" },
+      { title: "Department Management", icon: Building2, url: "/hr/department-management" },
+      { title: "Attendance Management", icon: Clock, url: "/hr/attendance-management" },
+      { title: "Leave Management", icon: CalendarCheck, url: "/hr/leave-management" },
+      { title: "Payroll Management", icon: Wallet, url: "/hr/payroll-management" },
+      { title: "Compliance Dashboard", icon: ShieldCheck, url: "/hr/compliance-dashboard" },
+      { title: "Bulk Import", icon: Upload, url: "/hr/bulk-import" },
+      { title: "User Invitations", icon: Mail, url: "/hr/user-invitations" },
     ],
   },
   {
@@ -156,10 +169,11 @@ export function AppSidebar() {
                                 to={item.url}
                                 className={({ isActive }) =>
                                   isActive
-                                    ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                                    ? "bg-accent text-accent-foreground"
                                     : "hover:bg-sidebar-accent/50"
                                 }
                               >
+                                {item.icon && <item.icon className="h-4 w-4" />}
                                 <span>{item.title}</span>
                               </NavLink>
                             </SidebarMenuSubButton>
