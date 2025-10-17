@@ -68,21 +68,70 @@ const handler = async (req: Request): Promise<Response> => {
       }
     );
 
-    // Check if company with this registration number already exists
-    const { data: existingCompany } = await supabaseAdmin
-      .from('companies')
-      .select('id')
-      .eq('registration_no', registrationNo)
-      .single();
+    // Step 1: Check if user email already exists (most common case)
+    console.log('Checking for existing user email...');
+    const { data: { users } } = await supabaseAdmin.auth.admin.listUsers();
+    const userExists = users?.find(u => u.email === adminEmail);
 
-    if (existingCompany) {
+    if (userExists) {
       return new Response(
-        JSON.stringify({ success: false, error: 'Company with this registration number already exists' }),
+        JSON.stringify({ 
+          success: false, 
+          error: 'An account with this email already exists',
+          action: 'signin',
+          message: 'Please sign in to your account or use a different email address.'
+        }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Step 1: Create company record
+    // Step 2: Check if company with this registration number already exists
+    console.log('Checking for existing company...');
+    const { data: existingCompany } = await supabaseAdmin
+      .from('companies')
+      .select('id')
+      .eq('registration_no', registrationNo)
+      .maybeSingle();
+
+    if (existingCompany) {
+      // Check if company has any associated users
+      const { data: companyProfiles, error: profileCheckError } = await supabaseAdmin
+        .from('profiles')
+        .select('id')
+        .eq('company_id', existingCompany.id)
+        .limit(1);
+
+      if (profileCheckError) {
+        console.error('Error checking company profiles:', profileCheckError);
+      }
+
+      if (companyProfiles && companyProfiles.length > 0) {
+        // Company has users - this is a genuine duplicate
+        return new Response(
+          JSON.stringify({ 
+            success: false, 
+            error: 'This company registration number is already in use',
+            message: 'If you are an employee of this company, please contact your administrator for access.'
+          }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      } else {
+        // Orphaned company record - clean it up and continue
+        console.log('Removing orphaned company record:', existingCompany.id);
+        const { error: deleteError } = await supabaseAdmin
+          .from('companies')
+          .delete()
+          .eq('id', existingCompany.id);
+        
+        if (deleteError) {
+          console.error('Error deleting orphaned company:', deleteError);
+        } else {
+          console.log('Orphaned company removed successfully');
+        }
+      }
+    }
+
+    // Step 3: Create company record
     console.log('Creating company record...');
     const { data: company, error: companyError } = await supabaseAdmin
       .from('companies')
@@ -108,7 +157,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log('Company created:', company.id);
 
-    // Step 2: Create auth user
+    // Step 4: Create auth user
     console.log('Creating auth user...');
     const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
       email: adminEmail,
@@ -132,7 +181,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log('User created:', authData.user.id);
 
-    // Step 3: Update profile with company_id (should be created by trigger)
+    // Step 5: Update profile with company_id (should be created by trigger)
     console.log('Updating profile...');
     const { error: profileError } = await supabaseAdmin
       .from('profiles')
@@ -144,7 +193,7 @@ const handler = async (req: Request): Promise<Response> => {
       // Continue anyway as the trigger should have set this
     }
 
-    // Step 4: Assign company_admin role
+    // Step 6: Assign company_admin role
     console.log('Assigning company_admin role...');
     const { error: roleError } = await supabaseAdmin
       .from('user_roles')
@@ -158,7 +207,7 @@ const handler = async (req: Request): Promise<Response> => {
       // Log but don't fail the registration
     }
 
-    // Step 5: Generate verification token and send email
+    // Step 7: Generate verification token and send email
     console.log('Generating verification token...');
     const verificationToken = crypto.randomUUID();
     const expiresAt = new Date();
@@ -176,7 +225,7 @@ const handler = async (req: Request): Promise<Response> => {
       console.error('Token generation error:', tokenError);
     }
 
-    // Step 6: Send verification email
+    // Step 8: Send verification email
     console.log('Sending verification email...');
     try {
       const emailResponse = await supabaseAdmin.functions.invoke('send-verification-email', {

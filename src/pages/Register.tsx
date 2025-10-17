@@ -78,8 +78,30 @@ const Register = () => {
       }
 
       if (!result?.success) {
-        console.error("Registration failed:", result?.error);
-        throw new Error(result?.error || "Registration failed");
+        console.error("Registration failed:", result);
+        const errorMsg = result?.error || "Registration failed";
+        const detailedMsg = result?.message || errorMsg;
+        const errorAction = result?.action;
+        
+        // Handle specific error cases
+        if (errorMsg.includes("email already exists") || errorAction === "signin") {
+          toast.error("Account Already Exists", {
+            description: detailedMsg,
+            action: {
+              label: "Sign In",
+              onClick: () => navigate("/signin")
+            }
+          });
+        } else if (errorMsg.includes("registration number is already in use")) {
+          toast.error("Company Already Registered", {
+            description: detailedMsg
+          });
+        } else {
+          toast.error("Registration Failed", {
+            description: detailedMsg
+          });
+        }
+        return;
       }
 
       toast.success("Registration successful!", {
@@ -90,7 +112,7 @@ const Register = () => {
       navigate("/verify-instructions");
     } catch (error: any) {
       console.error("Registration error:", error);
-      toast.error("Registration failed", {
+      toast.error("Registration Failed", {
         description: error.message || "Something went wrong. Please try again."
       });
     } finally {
