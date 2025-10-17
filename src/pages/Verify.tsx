@@ -66,7 +66,8 @@ const Verify = () => {
             email_verified: true,
             verification_token: null,
             verification_token_expires_at: null,
-            status: "active"
+            status: "active",
+            verified_at: new Date().toISOString()
           })
           .eq("id", profile.id);
 
@@ -76,13 +77,13 @@ const Verify = () => {
         }
 
         setStatus("success");
-        setMessage("Email verified successfully! You can now sign in to your account.");
+        setMessage("Your email has been verified successfully!");
         toast.success("Email verified successfully!");
         
-        // Redirect to sign in after 3 seconds
+        // Redirect to sign in after 4 seconds
         setTimeout(() => {
           navigate("/signin");
-        }, 3000);
+        }, 4000);
       } catch (error: any) {
         console.error("Verification error:", error);
         setStatus("error");
@@ -135,7 +136,7 @@ const Verify = () => {
               <div className="space-y-4">
                 <div className="bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900 p-4 rounded-lg">
                   <p className="text-sm text-green-800 dark:text-green-200">
-                    ✅ Your account has been activated. You will be redirected to the sign-in page in a few seconds.
+                    ✅ Your account has been activated. You can now log in to your ERPOne account.
                   </p>
                 </div>
                 <Button asChild className="w-full">
