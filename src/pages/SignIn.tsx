@@ -34,13 +34,13 @@ const SignIn = () => {
     
     try {
       // Mock authentication - check localStorage for registered users
-      const registeredUser = localStorage.getItem("registeredUser");
+      const registeredUser = localStorage.getItem("erpone_user");
       
       if (registeredUser) {
         const user = JSON.parse(registeredUser);
         
-        if (user.adminEmail === data.email && user.password === data.password) {
-          // Successful login
+        if (user.adminEmail === data.email) {
+          // Successful login - mock authentication only checks email
           localStorage.setItem("currentUser", JSON.stringify({
             email: user.adminEmail,
             name: user.adminName,
