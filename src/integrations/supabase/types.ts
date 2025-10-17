@@ -14,16 +14,160 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      branches: {
+        Row: {
+          address: string | null
+          branch_name: string
+          company_id: string
+          created_at: string
+          id: string
+          is_head_office: boolean
+          phone: string | null
+        }
+        Insert: {
+          address?: string | null
+          branch_name: string
+          company_id: string
+          created_at?: string
+          id?: string
+          is_head_office?: boolean
+          phone?: string | null
+        }
+        Update: {
+          address?: string | null
+          branch_name?: string
+          company_id?: string
+          created_at?: string
+          id?: string
+          is_head_office?: boolean
+          phone?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "branches_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      companies: {
+        Row: {
+          address: string
+          business_type: string
+          company_name: string
+          created_at: string
+          email: string
+          id: string
+          phone: string
+          registration_no: string
+          status: string
+        }
+        Insert: {
+          address: string
+          business_type: string
+          company_name: string
+          created_at?: string
+          email: string
+          id?: string
+          phone: string
+          registration_no: string
+          status?: string
+        }
+        Update: {
+          address?: string
+          business_type?: string
+          company_name?: string
+          created_at?: string
+          email?: string
+          id?: string
+          phone?: string
+          registration_no?: string
+          status?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          company_id: string | null
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          company_id?: string | null
+          created_at?: string
+          email: string
+          full_name: string
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string | null
+          created_at?: string
+          email?: string
+          full_name?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_user_company_id: {
+        Args: { _user_id: string }
+        Returns: string
+      }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role:
+        | "super_admin"
+        | "company_admin"
+        | "hr_manager"
+        | "finance_manager"
+        | "employee"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +294,14 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: [
+        "super_admin",
+        "company_admin",
+        "hr_manager",
+        "finance_manager",
+        "employee",
+      ],
+    },
   },
 } as const
