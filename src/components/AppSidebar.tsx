@@ -18,7 +18,8 @@ import {
   Upload,
   Mail
 } from "lucide-react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import {
   Sidebar,
   SidebarContent,
@@ -46,7 +47,7 @@ const modules = [
   {
     title: "Dashboard",
     icon: LayoutDashboard,
-    url: "/",
+    url: "/dashboard",
   },
   {
     title: "People & HR",
@@ -109,6 +110,14 @@ const modules = [
 export function AppSidebar() {
   const { state } = useSidebar();
   const isCollapsed = state === "collapsed";
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    localStorage.removeItem("erpone_user");
+    localStorage.removeItem("currentUser");
+    toast.success("Logged out successfully");
+    navigate("/signin");
+  };
 
   return (
     <Sidebar collapsible="icon">
@@ -207,7 +216,11 @@ export function AppSidebar() {
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton tooltip="Logout" className="hover:bg-destructive/10 hover:text-destructive">
+            <SidebarMenuButton 
+              tooltip="Logout" 
+              className="hover:bg-destructive/10 hover:text-destructive"
+              onClick={handleLogout}
+            >
               <LogOut className="h-5 w-5" />
               <span>Logout</span>
             </SidebarMenuButton>
