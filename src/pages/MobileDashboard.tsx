@@ -2,6 +2,8 @@ import * as React from "react";
 import { CEOSummaryWidget } from "@/components/dashboard/ceo-summary-widget";
 import { BottomTabBar } from "@/components/mobile/bottom-tab-bar";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { toast as newToast } from "@/lib/toast-api";
 import { useToast } from "@/hooks/use-toast";
 
 type TabValue = 'dashboard' | 'leave' | 'approvals' | 'more' | 'profile';
@@ -129,6 +131,43 @@ export default function MobileDashboard() {
         </Card>
 
         {/* Current Tab Info */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Toast Notifications Demo</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 gap-3">
+              <Button
+                onClick={() => newToast.success('Leave Approved!', { description: 'Sarah has been notified via email' })}
+                className="bg-green-600 hover:bg-green-700"
+              >
+                Success
+              </Button>
+              <Button
+                onClick={() => newToast.error('Submission Failed', {
+                  description: 'Please check your connection',
+                  action: { label: 'Retry', onClick: () => console.log('Retry clicked') }
+                })}
+                className="bg-red-600 hover:bg-red-700"
+              >
+                Error
+              </Button>
+              <Button
+                onClick={() => newToast.warning('Low Balance', { description: 'Only 2 leave days remaining' })}
+                className="bg-amber-600 hover:bg-amber-700"
+              >
+                Warning
+              </Button>
+              <Button
+                onClick={() => newToast.info('System Update', { description: 'Scheduled maintenance tonight at 10 PM' })}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                Info
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
         <Card>
           <CardHeader>
             <CardTitle>Current Tab</CardTitle>
