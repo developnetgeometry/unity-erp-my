@@ -8,6 +8,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DateRange } from "react-day-picker";
+import { SetupWizard } from "@/components/onboarding/setup-wizard";
+import { LeaveRequestForm } from "@/components/leave/leave-request-form";
+import { CompanySetupData } from "@/types/setup-wizard";
+import { LeaveRequestData } from "@/types/leave-request";
 
 export default function ComponentShowcase() {
   const [expenseAmount, setExpenseAmount] = React.useState<number | null>(null);
@@ -68,11 +72,13 @@ export default function ComponentShowcase() {
         </div>
 
         <Tabs defaultValue="currency" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="currency">Currency</TabsTrigger>
             <TabsTrigger value="ic">IC Number</TabsTrigger>
             <TabsTrigger value="phone">Phone</TabsTrigger>
             <TabsTrigger value="date">Date Picker</TabsTrigger>
+            <TabsTrigger value="setup">Setup Wizard</TabsTrigger>
+            <TabsTrigger value="leave">Leave Request</TabsTrigger>
           </TabsList>
 
           <TabsContent value="currency">
@@ -490,6 +496,51 @@ export default function ComponentShowcase() {
                     <span className="font-semibold">{leaveRange?.to?.toISOString() || 'null'}</span>
                   </div>
                 </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="setup">
+            <Card>
+              <CardHeader>
+                <CardTitle>Setup Wizard - 7-Step Onboarding</CardTitle>
+                <CardDescription>
+                  Complete setup wizard with progress tracking, validation, and auto-save
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <SetupWizard
+                  onComplete={(data: CompanySetupData) => {
+                    console.log('Setup completed:', data);
+                    alert('Setup completed successfully! Check console for data.');
+                  }}
+                  onExit={() => {
+                    console.log('Setup wizard exited');
+                    alert('Setup wizard exited. Progress saved to draft.');
+                  }}
+                />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="leave">
+            <Card>
+              <CardHeader>
+                <CardTitle>Leave Request Form - 4-Step Mobile Flow</CardTitle>
+                <CardDescription>
+                  Multi-step leave request with team calendar, coverage delegation, and auto-save
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <LeaveRequestForm
+                  onSubmit={(data: LeaveRequestData) => {
+                    console.log('Leave request submitted:', data);
+                    alert(`Leave request submitted!\nType: ${data.leaveType}\nDates: ${data.startDate.toLocaleDateString()} - ${data.endDate.toLocaleDateString()}`);
+                  }}
+                  onSaveDraft={(data: Partial<LeaveRequestData>) => {
+                    console.log('Draft saved:', data);
+                  }}
+                />
               </CardContent>
             </Card>
           </TabsContent>
