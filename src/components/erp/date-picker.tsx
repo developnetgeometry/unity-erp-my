@@ -1,5 +1,4 @@
 import * as React from "react";
-import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -26,28 +25,6 @@ export interface DatePickerProps {
   id?: string;
   className?: string;
 }
-
-// Quick selector options
-const quickSelectors = [
-  { label: "Today", getValue: () => new Date() },
-  { label: "Tomorrow", getValue: () => {
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    return tomorrow;
-  }},
-  { label: "+7 days", getValue: () => {
-    const week = new Date();
-    week.setDate(week.getDate() + 7);
-    return week;
-  }},
-  { label: "Next Monday", getValue: () => {
-    const nextMonday = new Date();
-    const day = nextMonday.getDay();
-    const daysUntilMonday = day === 0 ? 1 : 8 - day;
-    nextMonday.setDate(nextMonday.getDate() + daysUntilMonday);
-    return nextMonday;
-  }},
-];
 
 export const DatePicker = React.forwardRef<HTMLButtonElement, DatePickerProps>(
   (
@@ -95,14 +72,6 @@ export const DatePicker = React.forwardRef<HTMLButtonElement, DatePickerProps>(
       });
     };
 
-    const handleQuickSelect = (getValue: () => Date) => {
-      const newDate = getValue();
-      if (!isDateDisabled(newDate)) {
-        onChange(newDate);
-        setOpen(false);
-      }
-    };
-
     const inputId = id || `date-${label.toLowerCase().replace(/\s+/g, '-')}`;
     const hasError = !!error;
 
@@ -136,22 +105,6 @@ export const DatePicker = React.forwardRef<HTMLButtonElement, DatePickerProps>(
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0" align="start">
-            {/* Quick Selectors */}
-            <div className="flex gap-2 p-3 border-b">
-              {quickSelectors.map((selector) => (
-                <Button
-                  key={selector.label}
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleQuickSelect(selector.getValue)}
-                  disabled={isDateDisabled(selector.getValue())}
-                  className="text-xs"
-                >
-                  {selector.label}
-                </Button>
-              ))}
-            </div>
-
             {/* Calendar */}
             <Calendar
               mode="single"
