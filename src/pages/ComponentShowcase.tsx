@@ -2,9 +2,12 @@ import * as React from "react";
 import { CurrencyInput } from "@/components/erp/currency-input";
 import { ICNumberInput } from "@/components/erp/ic-number-input";
 import { PhoneNumberInput } from "@/components/erp/phone-number-input";
+import { DatePicker } from "@/components/erp/date-picker";
+import { DateRangePicker } from "@/components/erp/date-range-picker";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { DateRange } from "react-day-picker";
 
 export default function ComponentShowcase() {
   const [expenseAmount, setExpenseAmount] = React.useState<number | null>(null);
@@ -15,6 +18,16 @@ export default function ComponentShowcase() {
   const [mobilePhone, setMobilePhone] = React.useState<string>('');
   const [landlinePhone, setLandlinePhone] = React.useState<string>('0321234567');
   const [countryCode, setCountryCode] = React.useState<string>('+60');
+  const [joinDate, setJoinDate] = React.useState<Date | null>(null);
+  const [leaveRange, setLeaveRange] = React.useState<DateRange | null>(null);
+
+  // Public holidays for demonstration (Malaysian public holidays 2025)
+  const publicHolidays = React.useMemo(() => [
+    new Date(2025, 0, 1), // New Year
+    new Date(2025, 0, 29), // Chinese New Year
+    new Date(2025, 4, 1), // Labour Day
+    new Date(2025, 7, 31), // National Day
+  ], []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,6 +40,8 @@ export default function ComponentShowcase() {
       mobilePhone,
       landlinePhone,
       countryCode,
+      joinDate,
+      leaveRange,
     });
     alert(
       `Submitted!\n` +
@@ -36,7 +51,9 @@ export default function ComponentShowcase() {
       `IC: ${icNumber}\n` +
       `IC (Masked): ${icNumberMasked}\n` +
       `Mobile: ${countryCode} ${mobilePhone}\n` +
-      `Landline: ${countryCode} ${landlinePhone}`
+      `Landline: ${countryCode} ${landlinePhone}\n` +
+      `Join Date: ${joinDate?.toLocaleDateString('en-MY')}\n` +
+      `Leave: ${leaveRange?.from?.toLocaleDateString('en-MY')} to ${leaveRange?.to?.toLocaleDateString('en-MY')}`
     );
   };
 
@@ -46,15 +63,16 @@ export default function ComponentShowcase() {
         <div>
           <h1 className="text-3xl font-bold mb-2">Malaysian ERP Components Showcase</h1>
           <p className="text-muted-foreground">
-            Phase 2-4: Currency Input, IC Number Input, and Phone Number Input with validation
+            Phase 2-5: Currency, IC Number, Phone Number, and Date Picker with Malaysian formatting
           </p>
         </div>
 
         <Tabs defaultValue="currency" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="currency">Currency Input</TabsTrigger>
-            <TabsTrigger value="ic">IC Number Input</TabsTrigger>
-            <TabsTrigger value="phone">Phone Number Input</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="currency">Currency</TabsTrigger>
+            <TabsTrigger value="ic">IC Number</TabsTrigger>
+            <TabsTrigger value="phone">Phone</TabsTrigger>
+            <TabsTrigger value="date">Date Picker</TabsTrigger>
           </TabsList>
 
           <TabsContent value="currency">
@@ -365,6 +383,111 @@ export default function ComponentShowcase() {
                   <div>
                     <span className="text-muted-foreground">Landline:</span>{' '}
                     <span className="font-semibold">{landlinePhone || 'empty'}</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="date">
+            <Card>
+              <CardHeader>
+                <CardTitle>Date Picker - Malaysian DD/MM/YYYY Format</CardTitle>
+                <CardDescription>
+                  Try selecting dates with quick selectors or calendar view
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  {/* Single Date */}
+                  <DatePicker
+                    id="join-date"
+                    label="Join Date"
+                    value={joinDate}
+                    onChange={setJoinDate}
+                    minDate={new Date(2020, 0, 1)}
+                    maxDate={new Date()}
+                    required
+                    helperText="Employee join date (cannot be future date)"
+                  />
+
+                  {/* Date Range */}
+                  <DateRangePicker
+                    id="leave-range"
+                    label="Leave Period"
+                    value={leaveRange}
+                    onChange={setLeaveRange}
+                    minDate={new Date()}
+                    excludeDates={publicHolidays}
+                    required
+                    helperText="Select leave dates (public holidays excluded)"
+                  />
+
+                  <Button type="submit" className="w-full md:w-auto">
+                    Submit Form
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Features Demonstrated</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-2 text-sm">
+                  <li className="flex items-start gap-2">
+                    <span className="text-primary font-bold">✓</span>
+                    <span><strong>DD/MM/YYYY Format:</strong> Malaysian date format (not US MM/DD/YYYY)</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-primary font-bold">✓</span>
+                    <span><strong>Quick Selectors:</strong> Today, Tomorrow, +7 days, Next Monday for fast selection</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-primary font-bold">✓</span>
+                    <span><strong>Range Selection:</strong> Select start and end dates for leave requests</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-primary font-bold">✓</span>
+                    <span><strong>Exclude Dates:</strong> Public holidays highlighted and disabled</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-primary font-bold">✓</span>
+                    <span><strong>Min/Max Constraints:</strong> Join date cannot be future, leave cannot be past</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-primary font-bold">✓</span>
+                    <span><strong>Mobile-Optimized:</strong> Touch-friendly 44×44px touch targets per day</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-primary font-bold">✓</span>
+                    <span><strong>WCAG 2.1 AA:</strong> Accessible with proper ARIA labels and keyboard navigation</span>
+                  </li>
+                </ul>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Current Values</CardTitle>
+                <CardDescription>
+                  These are the actual Date objects stored
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2 font-mono text-sm">
+                  <div>
+                    <span className="text-muted-foreground">Join Date:</span>{' '}
+                    <span className="font-semibold">{joinDate?.toISOString() || 'null'}</span>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Leave From:</span>{' '}
+                    <span className="font-semibold">{leaveRange?.from?.toISOString() || 'null'}</span>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Leave To:</span>{' '}
+                    <span className="font-semibold">{leaveRange?.to?.toISOString() || 'null'}</span>
                   </div>
                 </div>
               </CardContent>
