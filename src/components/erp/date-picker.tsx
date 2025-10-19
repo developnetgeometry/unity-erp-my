@@ -162,9 +162,6 @@ export const DatePicker = React.forwardRef<HTMLButtonElement, DatePickerProps>(
               }}
               disabled={isDateDisabled}
               initialFocus
-              captionLayout="dropdown-buttons"
-              fromYear={1900}
-              toYear={new Date().getFullYear() + 10}
               className={cn("p-3 pointer-events-auto")}
             />
           </PopoverContent>
