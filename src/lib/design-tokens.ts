@@ -11,34 +11,44 @@
 // ============================================================================
 
 export const colors = {
-  // Primary Blue - Main actions, info states
+  // Primary Green - Main actions, success states (#047857)
   primary: {
-    DEFAULT: 'hsl(221.2 83.2% 53.3%)',
-    foreground: 'hsl(210 40% 98%)',
+    DEFAULT: 'hsl(160 84% 26%)',
+    hover: 'hsl(160 77% 31%)',
+    light: 'hsl(152 69% 83%)',
+    foreground: 'hsl(0 0% 100%)',
   },
   
-  // Secondary
+  // Secondary/Info Blue (#3B82F6)
   secondary: {
-    DEFAULT: 'hsl(210 40% 96.1%)',
-    foreground: 'hsl(222.2 47.4% 11.2%)',
+    DEFAULT: 'hsl(221 83% 53%)',
+    foreground: 'hsl(0 0% 100%)',
   },
   
-  // Destructive Red
-  destructive: {
-    DEFAULT: 'hsl(0 84.2% 60.2%)',
-    foreground: 'hsl(210 40% 98%)',
+  // Warning Amber (#F59E0B)
+  warning: {
+    DEFAULT: 'hsl(38 92% 50%)',
+    foreground: 'hsl(0 0% 100%)',
   },
   
-  // Muted
-  muted: {
-    DEFAULT: 'hsl(210 40% 96.1%)',
-    foreground: 'hsl(215.4 16.3% 46.9%)',
+  // Error/Destructive Red (#EF4444)
+  error: {
+    DEFAULT: 'hsl(0 84% 60%)',
+    foreground: 'hsl(0 0% 100%)',
   },
   
-  // Accent
-  accent: {
-    DEFAULT: 'hsl(210 40% 96.1%)',
-    foreground: 'hsl(222.2 47.4% 11.2%)',
+  // Neutral Grays (Tailwind Scale)
+  gray: {
+    50: 'hsl(220 14% 96%)',
+    100: 'hsl(220 13% 91%)',
+    200: 'hsl(220 13% 88%)',
+    300: 'hsl(220 14% 83%)',
+    400: 'hsl(220 9% 46%)',
+    500: 'hsl(220 9% 46%)',
+    600: 'hsl(215 16% 30%)',
+    700: 'hsl(215 19% 25%)',
+    800: 'hsl(215 28% 17%)',
+    900: 'hsl(215 32% 11%)',
   },
 } as const;
 
