@@ -16,6 +16,8 @@ import { ApprovalCard } from "@/components/approvals/approval-card";
 import { ApprovalCardData } from "@/types/approval-card";
 import { ExpenseSubmissionForm } from "@/components/expense/expense-submission-form";
 import { ExpenseSubmission } from "@/types/expense-submission";
+import { InvoiceMatchingView } from "@/components/invoice/invoice-matching-view";
+import { InvoiceMatchingData } from "@/types/invoice-matching";
 
 export default function ComponentShowcase() {
   const [expenseAmount, setExpenseAmount] = React.useState<number | null>(null);
@@ -85,6 +87,7 @@ export default function ComponentShowcase() {
             <TabsTrigger value="leave">Leave Request</TabsTrigger>
               <TabsTrigger value="approval">Approval Card</TabsTrigger>
               <TabsTrigger value="expense">Expense OCR</TabsTrigger>
+              <TabsTrigger value="invoice">Invoice Matching</TabsTrigger>
             </TabsList>
 
           <TabsContent value="currency">
@@ -743,6 +746,164 @@ export default function ComponentShowcase() {
                     <li className="flex items-start gap-2">
                       <span className="text-primary font-bold">✓</span>
                       <span><strong>Auto-save:</strong> Drafts saved locally every second to localStorage</span>
+                    </li>
+                  </ul>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          {/* Invoice Matching Tab */}
+          <TabsContent value="invoice">
+            <div className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Three-Way Invoice Matching</CardTitle>
+                  <CardDescription>
+                    Desktop 3-column comparison + mobile swipeable cards with tolerance validation
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="p-0 md:p-6">
+                  <InvoiceMatchingView
+                    data={{
+                      po: {
+                        id: 'PO-2024-001',
+                        supplier: 'Tech Supplies Sdn Bhd',
+                        date: new Date(2024, 0, 10),
+                        items: [
+                          { id: '1', description: 'Dell Laptop OptiPlex 7090', quantity: 10, unitPrice: 3500, total: 35000 },
+                          { id: '2', description: 'Wireless Mouse Logitech MX Master 3', quantity: 10, unitPrice: 420, total: 4200 },
+                          { id: '3', description: 'USB-C Hub Anker 7-in-1', quantity: 10, unitPrice: 180, total: 1800 },
+                        ],
+                        total: 41000,
+                      },
+                      receipt: {
+                        id: 'GR-2024-005',
+                        poId: 'PO-2024-001',
+                        date: new Date(2024, 0, 15),
+                        items: [
+                          { id: '1', description: 'Dell Laptop OptiPlex 7090', quantity: 10, unitPrice: 3500, total: 35000 },
+                          { id: '2', description: 'Wireless Mouse Logitech MX Master 3', quantity: 10, unitPrice: 420, total: 4200 },
+                          { id: '3', description: 'USB-C Hub Anker 7-in-1', quantity: 9, unitPrice: 180, total: 1620 },
+                        ],
+                        total: 40820,
+                      },
+                      invoice: {
+                        id: 'INV-TECH-2024-123',
+                        supplier: 'Tech Supplies Sdn Bhd',
+                        invoiceNumber: 'INV-TECH-2024-123',
+                        date: new Date(2024, 0, 20),
+                        dueDate: new Date(2024, 1, 20),
+                        items: [
+                          { id: '1', description: 'Dell Laptop OptiPlex 7090', quantity: 10, unitPrice: 3500, total: 35000 },
+                          { id: '2', description: 'Wireless Mouse Logitech MX Master 3', quantity: 10, unitPrice: 430, total: 4300 },
+                          { id: '3', description: 'USB-C Hub Anker 7-in-1', quantity: 9, unitPrice: 180, total: 1620 },
+                        ],
+                        total: 40920,
+                        gst: 2455.20,
+                      },
+                      matchedItems: [
+                        {
+                          id: '1',
+                          description: 'Dell Laptop OptiPlex 7090',
+                          po: { quantity: 10, unitPrice: 3500, total: 35000 },
+                          receipt: { quantity: 10, unitPrice: 3500, total: 35000 },
+                          invoice: { quantity: 10, unitPrice: 3500, total: 35000 },
+                          quantityVariance: { value: 0, percentage: 0, status: 'perfect' },
+                          priceVariance: { value: 0, percentage: 0, status: 'perfect' },
+                          totalVariance: { value: 0, percentage: 0, status: 'perfect' },
+                          overallStatus: 'perfect',
+                        },
+                        {
+                          id: '2',
+                          description: 'Wireless Mouse Logitech MX Master 3',
+                          po: { quantity: 10, unitPrice: 420, total: 4200 },
+                          receipt: { quantity: 10, unitPrice: 420, total: 4200 },
+                          invoice: { quantity: 10, unitPrice: 430, total: 4300 },
+                          quantityVariance: { value: 0, percentage: 0, status: 'perfect' },
+                          priceVariance: { value: 10, percentage: 2.4, status: 'within-tolerance' },
+                          totalVariance: { value: 100, percentage: 2.4, status: 'within-tolerance' },
+                          overallStatus: 'within-tolerance',
+                        },
+                        {
+                          id: '3',
+                          description: 'USB-C Hub Anker 7-in-1',
+                          po: { quantity: 10, unitPrice: 180, total: 1800 },
+                          receipt: { quantity: 9, unitPrice: 180, total: 1620 },
+                          invoice: { quantity: 9, unitPrice: 180, total: 1620 },
+                          quantityVariance: { value: -1, percentage: -10, status: 'within-tolerance' },
+                          priceVariance: { value: 0, percentage: 0, status: 'perfect' },
+                          totalVariance: { value: -180, percentage: -10, status: 'within-tolerance' },
+                          overallStatus: 'within-tolerance',
+                        },
+                      ],
+                      totalVariance: { value: -80, percentage: -0.2, status: 'within-tolerance' },
+                      toleranceConfig: {
+                        tiers: [
+                          { maxAmount: 1000, percentageTolerance: 10, absoluteTolerance: 100 },
+                          { maxAmount: 10000, percentageTolerance: 5, absoluteTolerance: 500 },
+                          { maxAmount: Infinity, percentageTolerance: 2, absoluteTolerance: 1000 },
+                        ],
+                      },
+                      withinTolerance: true,
+                    }}
+                    onApprove={(id, justification) => {
+                      console.log('Invoice approved:', id, justification);
+                      alert(`Invoice ${id} approved for payment!`);
+                    }}
+                    onReject={(id, reason) => {
+                      console.log('Invoice rejected:', id, reason);
+                      alert(`Invoice ${id} rejected: ${reason}`);
+                    }}
+                    onHold={(id, reason) => {
+                      console.log('Invoice held:', id, reason);
+                      alert(`Invoice ${id} held for review: ${reason}`);
+                    }}
+                    onRequestClarification={(id, message) => {
+                      console.log('Clarification requested:', id, message);
+                      alert(`Clarification message sent for ${id}`);
+                    }}
+                  />
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Features Demonstrated</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-2 text-sm">
+                    <li className="flex items-start gap-2">
+                      <span className="text-primary font-bold">✓</span>
+                      <span><strong>3-Way Comparison:</strong> Side-by-side PO, Receipt, Invoice with row-level matching</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-primary font-bold">✓</span>
+                      <span><strong>Variance Analysis:</strong> Toggle between %, RM, or both views with color-coded status</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-primary font-bold">✓</span>
+                      <span><strong>Tolerance Thresholds:</strong> Tiered validation (10%/RM100 for &lt;RM1K, 5%/RM500 for &lt;RM10K)</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-primary font-bold">✓</span>
+                      <span><strong>Expandable Rows:</strong> Click rows to see detailed quantity/price/total breakdown</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-primary font-bold">✓</span>
+                      <span><strong>Mobile Swipeable:</strong> Simplified card view with tabs (PO → Receipt → Invoice)</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-primary font-bold">✓</span>
+                      <span><strong>Override Flow:</strong> Approve button disabled if variance exceeds tolerance (requires justification)</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-primary font-bold">✓</span>
+                      <span><strong>Keyboard Shortcuts:</strong> Alt+A (Approve), Alt+H (Hold), Alt+R (Reject), Ctrl+M (Message)</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-primary font-bold">✓</span>
+                      <span><strong>Responsive Design:</strong> Desktop table view, mobile simplified cards with fixed bottom actions</span>
                     </li>
                   </ul>
                 </CardContent>
