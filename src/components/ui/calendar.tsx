@@ -48,39 +48,39 @@ function CustomCaption({ displayMonth, onMonthChange }: CaptionProps & { onMonth
   };
 
   return (
-    <div className="flex justify-between items-center px-2 py-2">
+    <div className="flex justify-between items-center px-1 py-1">
       <Button
         variant="ghost"
         size="icon"
         onClick={handlePrevMonth}
-        className="h-7 w-7"
+        className="h-6 w-6 p-0"
       >
-        <ChevronLeft className="h-4 w-4" />
+        <ChevronLeft className="h-3.5 w-3.5" />
       </Button>
 
       <Popover open={isOpen} onOpenChange={setIsOpen}>
         <PopoverTrigger asChild>
           <Button
             variant="ghost"
-            className="font-medium hover:bg-accent"
+            className="h-6 px-2 font-medium text-sm hover:bg-accent"
           >
             {months[currentMonth]} {currentYear}
-            <ChevronDown className="ml-1 h-4 w-4" />
+            <ChevronDown className="ml-1 h-3 w-3" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-[320px] p-0" align="center">
-          <div className="p-4 border-b">
-            <div className="text-sm font-medium text-center">Select Year</div>
+        <PopoverContent className="w-[280px] p-0" align="center">
+          <div className="p-2 border-b">
+            <div className="text-xs font-medium text-center">Select Year</div>
           </div>
-          <ScrollArea className="h-[280px]">
-            <div className="grid grid-cols-4 gap-2 p-4">
+          <ScrollArea className="h-[240px]">
+            <div className="grid grid-cols-4 gap-1 p-2">
               {years.map((year) => (
                 <Button
                   key={year}
                   variant={year === currentYear ? "default" : "ghost"}
                   onClick={() => handleYearSelect(year)}
                   className={cn(
-                    "h-10 w-full",
+                    "h-8 w-full text-xs",
                     year === currentYear && "bg-primary text-primary-foreground"
                   )}
                 >
@@ -96,9 +96,9 @@ function CustomCaption({ displayMonth, onMonthChange }: CaptionProps & { onMonth
         variant="ghost"
         size="icon"
         onClick={handleNextMonth}
-        className="h-7 w-7"
+        className="h-6 w-6 p-0"
       >
-        <ChevronRight className="h-4 w-4" />
+        <ChevronRight className="h-3.5 w-3.5" />
       </Button>
     </div>
   );
@@ -120,21 +120,21 @@ function Calendar({ className, classNames, showOutsideDays = true, ...props }: C
   return (
     <DayPicker
       showOutsideDays={showOutsideDays}
-      className={cn("p-3", className)}
+      className={cn("p-2", className)}
       month={month}
       onMonthChange={handleMonthChange}
       classNames={{
-        months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
-        month: "space-y-4",
-        caption: "flex justify-center pt-1 relative items-center",
+        months: "flex flex-col sm:flex-row space-y-2 sm:space-x-2 sm:space-y-0",
+        month: "space-y-2",
+        caption: "flex justify-center relative items-center mb-1",
         caption_label: "hidden", // Hide default caption label
         nav: "hidden", // Hide default navigation
-        table: "w-full border-collapse space-y-1",
+        table: "w-full border-collapse",
         head_row: "flex",
-        head_cell: "text-muted-foreground rounded-md w-9 font-normal text-[0.8rem]",
-        row: "flex w-full mt-2",
-        cell: "h-9 w-9 text-center text-sm p-0 relative [&:has([aria-selected].day-range-end)]:rounded-r-md [&:has([aria-selected].day-outside)]:bg-accent/50 [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
-        day: cn(buttonVariants({ variant: "ghost" }), "h-9 w-9 p-0 font-normal aria-selected:opacity-100"),
+        head_cell: "text-muted-foreground rounded-md w-8 font-normal text-[0.75rem]",
+        row: "flex w-full mt-1",
+        cell: "h-8 w-8 text-center text-xs p-0 relative [&:has([aria-selected].day-range-end)]:rounded-r-md [&:has([aria-selected].day-outside)]:bg-accent/50 [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
+        day: cn(buttonVariants({ variant: "ghost" }), "h-8 w-8 p-0 font-normal text-xs aria-selected:opacity-100"),
         day_range_end: "day-range-end",
         day_selected:
           "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
