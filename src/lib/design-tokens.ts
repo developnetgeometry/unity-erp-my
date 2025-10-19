@@ -11,11 +11,11 @@
 // ============================================================================
 
 export const colors = {
-  // Primary Green - Main actions, success states (#047857)
+  // Primary Deep Professional Blue - Main actions, primary states (#1e40af)
   primary: {
-    DEFAULT: 'hsl(160 84% 26%)',
-    hover: 'hsl(160 77% 31%)',
-    light: 'hsl(152 69% 83%)',
+    DEFAULT: 'hsl(224 76% 39%)',
+    hover: 'hsl(224 76% 53%)',
+    light: 'hsl(214 95% 93%)',
     foreground: 'hsl(0 0% 100%)',
   },
   
