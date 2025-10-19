@@ -14,6 +14,8 @@ import { CompanySetupData } from "@/types/setup-wizard";
 import { LeaveRequestData } from "@/types/leave-request";
 import { ApprovalCard } from "@/components/approvals/approval-card";
 import { ApprovalCardData } from "@/types/approval-card";
+import { ExpenseSubmissionForm } from "@/components/expense/expense-submission-form";
+import { ExpenseSubmission } from "@/types/expense-submission";
 
 export default function ComponentShowcase() {
   const [expenseAmount, setExpenseAmount] = React.useState<number | null>(null);
@@ -81,8 +83,9 @@ export default function ComponentShowcase() {
             <TabsTrigger value="date">Date Picker</TabsTrigger>
             <TabsTrigger value="setup">Setup Wizard</TabsTrigger>
             <TabsTrigger value="leave">Leave Request</TabsTrigger>
-            <TabsTrigger value="approval">Approval Card</TabsTrigger>
-          </TabsList>
+              <TabsTrigger value="approval">Approval Card</TabsTrigger>
+              <TabsTrigger value="expense">Expense OCR</TabsTrigger>
+            </TabsList>
 
           <TabsContent value="currency">
             <Card>
@@ -677,6 +680,69 @@ export default function ComponentShowcase() {
                     <li className="flex items-start gap-2">
                       <span className="text-primary font-bold">✓</span>
                       <span><strong>History & Policy:</strong> Tabbed view with past requests and policy details</span>
+                    </li>
+                  </ul>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          {/* Expense OCR Tab */}
+          <TabsContent value="expense">
+            <div className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Expense Submission with Receipt OCR</CardTitle>
+                  <CardDescription>
+                    Camera-first expense claim with intelligent OCR, batch support, and policy compliance
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="p-0 md:p-6">
+                  <ExpenseSubmissionForm
+                    onSubmit={(submission) => {
+                      console.log('Expense submitted:', submission);
+                      alert(`Expense ${submission.id} submitted! Expected payment: ${submission.reimbursementDate?.toLocaleDateString()}`);
+                    }}
+                    onSaveDraft={(draft) => {
+                      console.log('Draft saved:', draft);
+                    }}
+                  />
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Features Demonstrated</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-2 text-sm">
+                    <li className="flex items-start gap-2">
+                      <span className="text-primary font-bold">✓</span>
+                      <span><strong>Camera Capture:</strong> Real-time lighting quality detection with guides</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-primary font-bold">✓</span>
+                      <span><strong>OCR Processing:</strong> Auto-extract merchant, amount, date, GST with confidence scores</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-primary font-bold">✓</span>
+                      <span><strong>Batch Mode:</strong> Multi-receipt support for trips/conferences with running total</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-primary font-bold">✓</span>
+                      <span><strong>Policy Compliance:</strong> Real-time validation against expense limits with warnings</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-primary font-bold">✓</span>
+                      <span><strong>Smart Categories:</strong> Pinned frequently-used categories + auto-suggestion</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-primary font-bold">✓</span>
+                      <span><strong>Reimbursement Timeline:</strong> Visual timeline showing approval stages and payment date</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-primary font-bold">✓</span>
+                      <span><strong>Auto-save:</strong> Drafts saved locally every second to localStorage</span>
                     </li>
                   </ul>
                 </CardContent>
