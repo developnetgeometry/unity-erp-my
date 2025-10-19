@@ -155,18 +155,18 @@ export function ApprovalCard({ data, onApprove, onReject, onRequestInfo }: Appro
 
   return (
     <>
-      <Card className="w-full transition-all duration-200">
-        <CardHeader className="pb-3">
+      <Card className="w-full transition-all duration-200 border-0 md:border rounded-none md:rounded-lg shadow-sm">
+        <CardHeader className="pb-3 pt-4 px-4">
           <div className="flex items-start gap-3">
-            <Avatar className="h-12 w-12">
+            <Avatar className="h-14 w-14 md:h-12 md:w-12">
               <AvatarImage src={data.employee.avatar} alt={data.employee.name} />
-              <AvatarFallback>{data.employee.name.charAt(0)}</AvatarFallback>
+              <AvatarFallback className="text-lg">{data.employee.name.charAt(0)}</AvatarFallback>
             </Avatar>
 
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
-                <span className="text-lg">{renderTypeIcon()}</span>
-                <span className="font-semibold capitalize">{data.type} Request</span>
+                <span className="text-2xl md:text-lg">{renderTypeIcon()}</span>
+                <span className="font-semibold capitalize text-base md:text-sm">{data.type} Request</span>
                 {data.context.urgent && (
                   <Badge variant="destructive" className="ml-auto">
                     <AlertCircle className="w-3 h-3 mr-1" />
@@ -175,41 +175,41 @@ export function ApprovalCard({ data, onApprove, onReject, onRequestInfo }: Appro
                 )}
               </div>
 
-              <p className="text-sm text-muted-foreground">{data.employee.name}</p>
-              <p className="text-lg font-bold mt-1">{renderDetails()}</p>
+              <p className="text-sm md:text-xs text-muted-foreground">{data.employee.name}</p>
+              <p className="text-xl md:text-lg font-bold mt-1">{renderDetails()}</p>
             </div>
 
             <Button
               variant="ghost"
               size="icon"
               onClick={() => setIsExpanded(!isExpanded)}
-              className="shrink-0"
+              className="shrink-0 h-11 w-11 md:h-10 md:w-10"
             >
-              {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+              {isExpanded ? <ChevronUp className="h-5 w-5 md:h-4 md:w-4" /> : <ChevronDown className="h-5 w-5 md:h-4 md:w-4" />}
             </Button>
           </div>
         </CardHeader>
 
-        <CardContent className="space-y-3">
+        <CardContent className="space-y-3 px-4 pb-4">
           {/* Context Chips */}
           <div className="flex flex-wrap gap-2">
             {data.context.balanceAfter !== undefined && (
-              <Badge variant="secondary" className="gap-1">
-                <Calendar className="w-3 h-3" />
+              <Badge variant="secondary" className="gap-1 text-sm py-1.5 px-3">
+                <Calendar className="w-4 h-4 md:w-3 md:h-3" />
                 Balance: {data.context.balanceAfter} days after
               </Badge>
             )}
 
             {data.context.teamOut !== undefined && (
-              <Badge variant="secondary" className="gap-1">
-                <Users className="w-3 h-3" />
+              <Badge variant="secondary" className="gap-1 text-sm py-1.5 px-3">
+                <Users className="w-4 h-4 md:w-3 md:h-3" />
                 Team: {data.context.teamOut} teammates out
               </Badge>
             )}
 
             {data.context.projectImpact && (
-              <Badge variant="outline" className="gap-1 border-amber-500 text-amber-700">
-                <AlertCircle className="w-3 h-3" />
+              <Badge variant="outline" className="gap-1 border-amber-500 text-amber-700 text-sm py-1.5 px-3">
+                <AlertCircle className="w-4 h-4 md:w-3 md:h-3" />
                 Billable: {data.context.projectImpact.hours}hrs at risk (
                 {formatCurrency(data.context.projectImpact.revenue)})
               </Badge>
@@ -309,7 +309,7 @@ export function ApprovalCard({ data, onApprove, onReject, onRequestInfo }: Appro
             <div className="flex gap-2 pt-2">
               <div className="relative flex-1">
                 <Button
-                  className="w-full relative overflow-hidden"
+                  className="w-full relative overflow-hidden h-12 md:h-10 text-base md:text-sm"
                   onTouchStart={handleTouchStart}
                   onTouchEnd={handleTouchEnd}
                   onMouseDown={handleTouchStart}
@@ -322,7 +322,7 @@ export function ApprovalCard({ data, onApprove, onReject, onRequestInfo }: Appro
                       style={{ width: `${holdProgress}%` }}
                     />
                   )}
-                  <Check className="w-4 h-4 mr-2 relative z-10" />
+                  <Check className="w-5 h-5 md:w-4 md:h-4 mr-2 relative z-10" />
                   <span className="relative z-10">
                     {holdProgress > 0 ? `Hold... ${Math.floor(holdProgress / 10)}/10` : 'Approve'}
                   </span>
@@ -331,19 +331,20 @@ export function ApprovalCard({ data, onApprove, onReject, onRequestInfo }: Appro
 
               <Button
                 variant="destructive"
-                className="flex-1"
+                className="flex-1 h-12 md:h-10 text-base md:text-sm"
                 onClick={() => setShowRejectSheet(true)}
               >
-                <X className="w-4 h-4 mr-2" />
+                <X className="w-5 h-5 md:w-4 md:h-4 mr-2" />
                 Reject
               </Button>
 
               <Button
                 variant="outline"
                 size="icon"
+                className="h-12 w-12 md:h-10 md:w-10 shrink-0"
                 onClick={() => onRequestInfo(data.id)}
               >
-                <MessageSquare className="w-4 h-4" />
+                <MessageSquare className="w-5 h-5 md:w-4 md:h-4" />
               </Button>
             </div>
           )}

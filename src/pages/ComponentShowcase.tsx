@@ -557,7 +557,8 @@ export default function ComponentShowcase() {
                     Tap-and-hold to approve (1 second), 30-second undo, project impact visibility
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-4 p-0 md:p-6">
+                  <div className="max-w-md mx-auto md:max-w-2xl space-y-4">
                   <ApprovalCard
                     data={{
                       id: 'appr-001',
@@ -639,8 +640,9 @@ export default function ComponentShowcase() {
                       alert('Message sent to employee');
                     }}
                   />
-                </CardContent>
-              </Card>
+                </div>
+              </CardContent>
+            </Card>
 
               <Card>
                 <CardHeader>
