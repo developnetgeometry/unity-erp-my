@@ -8,109 +8,116 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* ERP One Professional Color System */
+    /* Malaysian ERP One Color System - WCAG 2.1 AA Compliant */
     --background: 220 14% 96%;
-    --foreground: 222 47% 11%;
+    --foreground: 215 16% 30%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card-foreground: 215 16% 30%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+    --popover-foreground: 215 16% 30%;
 
-    /* Deep Professional Blue - Trust & Stability */
-    --primary: 221 83% 20%;
-    --primary-foreground: 210 40% 98%;
-    --primary-light: 221 70% 35%;
-    --primary-glow: 221 83% 45%;
+    /* Primary Green - Success, Main Actions (#047857) */
+    --primary: 160 84% 26%;
+    --primary-foreground: 0 0% 100%;
+    --primary-hover: 160 77% 31%;
+    --primary-light: 152 69% 83%;
 
-    /* Vibrant Teal - Growth & Prosperity */
-    --secondary: 174 62% 47%;
+    /* Secondary/Info Blue (#3B82F6) */
+    --secondary: 221 83% 53%;
     --secondary-foreground: 0 0% 100%;
-    --secondary-light: 174 62% 60%;
 
+    /* Warning Amber (#F59E0B) */
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+
+    /* Neutral Grays */
     --muted: 220 14% 88%;
     --muted-foreground: 220 9% 46%;
 
-    /* Warm Amber - Highlights & CTAs */
+    /* Accent (same as warning for CTAs) */
     --accent: 38 92% 50%;
-    --accent-foreground: 222 47% 11%;
+    --accent-foreground: 0 0% 100%;
 
+    /* Error/Destructive Red (#EF4444) */
     --destructive: 0 84% 60%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 0 0% 100%;
 
     --border: 220 13% 88%;
     --input: 220 13% 91%;
-    --ring: 221 83% 20%;
+    --ring: 160 84% 26%;
 
     --radius: 0.5rem;
 
-    /* Professional Sidebar */
-    --sidebar-background: 221 83% 20%;
-    --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 174 62% 47%;
+    /* Sidebar - Professional Green Theme */
+    --sidebar-background: 160 84% 26%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 160 77% 31%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 221 70% 25%;
-    --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 221 70% 25%;
-    --sidebar-ring: 174 62% 47%;
+    --sidebar-accent: 160 70% 20%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 160 70% 20%;
+    --sidebar-ring: 221 83% 53%;
 
-    /* Professional Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(221 83% 20%) 0%, hsl(221 70% 35%) 100%);
-    --gradient-secondary: linear-gradient(135deg, hsl(174 62% 47%) 0%, hsl(174 62% 60%) 100%);
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(160 84% 26%) 0%, hsl(160 77% 31%) 100%);
+    --gradient-secondary: linear-gradient(135deg, hsl(221 83% 53%) 0%, hsl(221 83% 60%) 100%);
     --gradient-accent: linear-gradient(135deg, hsl(38 92% 50%) 0%, hsl(38 92% 60%) 100%);
-    --gradient-hero: linear-gradient(135deg, hsl(221 83% 20%) 0%, hsl(174 62% 47%) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(160 84% 26%) 0%, hsl(221 83% 53%) 100%);
     
-    /* Shadows */
-    --shadow-sm: 0 1px 2px 0 hsl(220 9% 46% / 0.05);
-    --shadow-md: 0 4px 6px -1px hsl(220 9% 46% / 0.1);
-    --shadow-lg: 0 10px 15px -3px hsl(220 9% 46% / 0.1);
-    --shadow-xl: 0 20px 25px -5px hsl(220 9% 46% / 0.1);
+    /* Elevation Shadows */
+    --shadow-elevation-1: 0 1px 3px 0 hsl(220 9% 46% / 0.1), 0 1px 2px -1px hsl(220 9% 46% / 0.1);
+    --shadow-elevation-2: 0 4px 6px -1px hsl(220 9% 46% / 0.1), 0 2px 4px -2px hsl(220 9% 46% / 0.1);
+    --shadow-elevation-3: 0 10px 15px -3px hsl(220 9% 46% / 0.1), 0 4px 6px -4px hsl(220 9% 46% / 0.1);
+    --shadow-elevation-4: 0 20px 25px -5px hsl(220 9% 46% / 0.1), 0 8px 10px -6px hsl(220 9% 46% / 0.1);
     
     /* Transitions */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .dark {
-    --background: 222 47% 11%;
-    --foreground: 210 40% 98%;
+    --background: 215 20% 11%;
+    --foreground: 0 0% 98%;
 
-    --card: 221 83% 15%;
-    --card-foreground: 210 40% 98%;
+    --card: 215 20% 15%;
+    --card-foreground: 0 0% 98%;
 
-    --popover: 221 83% 15%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 215 20% 15%;
+    --popover-foreground: 0 0% 98%;
 
-    --primary: 174 62% 47%;
-    --primary-foreground: 222 47% 11%;
-    --primary-light: 174 62% 60%;
-    --primary-glow: 174 62% 70%;
+    --primary: 160 77% 31%;
+    --primary-foreground: 0 0% 100%;
+    --primary-hover: 160 84% 35%;
+    --primary-light: 160 50% 25%;
 
-    --secondary: 221 70% 35%;
-    --secondary-foreground: 210 40% 98%;
-    --secondary-light: 221 70% 45%;
+    --secondary: 221 83% 53%;
+    --secondary-foreground: 0 0% 100%;
 
-    --muted: 221 70% 20%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+
+    --muted: 215 20% 20%;
     --muted-foreground: 220 14% 70%;
 
     --accent: 38 92% 50%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 62% 50%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 221 70% 20%;
-    --input: 221 70% 20%;
-    --ring: 174 62% 47%;
+    --border: 215 20% 20%;
+    --input: 215 20% 20%;
+    --ring: 160 77% 31%;
 
-    --sidebar-background: 221 83% 15%;
-    --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 174 62% 47%;
+    --sidebar-background: 215 20% 15%;
+    --sidebar-foreground: 0 0% 98%;
+    --sidebar-primary: 160 77% 31%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 221 70% 20%;
-    --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 221 70% 20%;
-    --sidebar-ring: 174 62% 47%;
+    --sidebar-accent: 215 20% 20%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 215 20% 20%;
+    --sidebar-ring: 160 77% 31%;
   }
 }
 
