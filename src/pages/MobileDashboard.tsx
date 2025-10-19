@@ -1,6 +1,8 @@
 import * as React from "react";
 import { CEOSummaryWidget } from "@/components/dashboard/ceo-summary-widget";
 import { BottomTabBar } from "@/components/mobile/bottom-tab-bar";
+import { ComplianceCalendar, type ComplianceDeadline } from "@/components/compliance/compliance-calendar";
+import { getMalaysianComplianceDeadlines2025 } from "@/lib/compliance-deadlines";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast as newToast } from "@/lib/toast-api";
@@ -13,7 +15,11 @@ type TabValue = 'dashboard' | 'leave' | 'approvals' | 'more' | 'profile';
 export default function MobileDashboard() {
   const [activeTab, setActiveTab] = React.useState<TabValue>('dashboard');
   const [showCustomModal, setShowCustomModal] = React.useState(false);
+  const [selectedDeadline, setSelectedDeadline] = React.useState<ComplianceDeadline | null>(null);
   const { toast } = useToast();
+
+  // Load compliance deadlines
+  const complianceDeadlines = React.useMemo(() => getMalaysianComplianceDeadlines2025(), []);
 
   // Sample data
   const ceoData = {
@@ -58,6 +64,10 @@ export default function MobileDashboard() {
       title: "Compliance Deadline",
       description: "Opening EPF submission form...",
     });
+  };
+
+  const handleComplianceDeadlineClick = (deadline: ComplianceDeadline) => {
+    setSelectedDeadline(deadline);
   };
 
   const handleTabChange = (tab: TabValue) => {
@@ -241,6 +251,21 @@ export default function MobileDashboard() {
           </CardContent>
         </Card>
 
+        {/* Compliance Calendar */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Compliance Calendar</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ComplianceCalendar
+              year={2025}
+              month={11}
+              deadlines={complianceDeadlines}
+              onDeadlineClick={handleComplianceDeadlineClick}
+            />
+          </CardContent>
+        </Card>
+
         <Card>
           <CardHeader>
             <CardTitle>Current Tab</CardTitle>
@@ -317,6 +342,86 @@ export default function MobileDashboard() {
           </div>
         </div>
       </Modal>
+
+      {/* Deadline Detail Modal */}
+      {selectedDeadline && (
+        <Modal
+          isOpen={true}
+          onClose={() => setSelectedDeadline(null)}
+          title={selectedDeadline.name}
+          description={selectedDeadline.description}
+          size="md"
+          footer={
+            <>
+              <Button variant="outline" onClick={() => setSelectedDeadline(null)}>
+                Close
+              </Button>
+              <Button onClick={() => {
+                newToast.success('Navigating to submission form');
+                setSelectedDeadline(null);
+              }}>
+                Continue Submission
+              </Button>
+            </>
+          }
+        >
+          <div className="space-y-4">
+            <div>
+              <h3 className="font-semibold text-sm text-gray-700 mb-2">Deadline Information</h3>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Category:</span>
+                  <span className="font-medium">{selectedDeadline.category}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Due Date:</span>
+                  <span className="font-medium">{selectedDeadline.dueDate.toLocaleDateString('en-MY')}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Status:</span>
+                  <span className="font-medium capitalize">{selectedDeadline.status}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Recurrence:</span>
+                  <span className="font-medium capitalize">{selectedDeadline.recurrence}</span>
+                </div>
+              </div>
+            </div>
+
+            {selectedDeadline.legalReference && (
+              <div>
+                <h3 className="font-semibold text-sm text-gray-700 mb-2">Legal Reference</h3>
+                <p className="text-sm text-gray-600">{selectedDeadline.legalReference}</p>
+              </div>
+            )}
+
+            {selectedDeadline.penalty && (
+              <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                <h3 className="font-semibold text-sm text-red-800 mb-1">Penalty for Late Submission</h3>
+                <p className="text-sm text-red-700">{selectedDeadline.penalty}</p>
+              </div>
+            )}
+
+            <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <h3 className="font-semibold text-sm text-blue-800 mb-1">Submission Timeline</h3>
+              <div className="space-y-2 text-xs text-blue-700">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-blue-600"></div>
+                  <span>Created: {new Date().toLocaleDateString('en-MY')}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-gray-400"></div>
+                  <span>In Progress</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-gray-300"></div>
+                  <span>Not submitted</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }
