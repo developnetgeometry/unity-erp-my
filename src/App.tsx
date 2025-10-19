@@ -27,7 +27,6 @@ import FinanceDashboard from "./pages/finance/Dashboard";
 import Inventory from "./pages/inventory/Inventory";
 import Projects from "./pages/projects/Projects";
 import Company from "./pages/admin/Company";
-import ComponentShowcase from "./pages/ComponentShowcase";
 import MobileDashboard from "./pages/MobileDashboard";
 import NotFound from "./pages/NotFound";
 
@@ -49,7 +48,6 @@ const App = () => (
             <Route path="/signin" element={<SignIn />} />
             <Route path="/verify-instructions" element={<VerifyInstructions />} />
             <Route path="/verify" element={<Verify />} />
-            <Route path="/showcase" element={<ComponentShowcase />} />
             <Route path="/mobile-dashboard" element={<MobileDashboard />} />
           </Route>
 
