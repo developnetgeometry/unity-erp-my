@@ -12,6 +12,8 @@ import { SetupWizard } from "@/components/onboarding/setup-wizard";
 import { LeaveRequestForm } from "@/components/leave/leave-request-form";
 import { CompanySetupData } from "@/types/setup-wizard";
 import { LeaveRequestData } from "@/types/leave-request";
+import { ApprovalCard } from "@/components/approvals/approval-card";
+import { ApprovalCardData } from "@/types/approval-card";
 
 export default function ComponentShowcase() {
   const [expenseAmount, setExpenseAmount] = React.useState<number | null>(null);
@@ -72,13 +74,14 @@ export default function ComponentShowcase() {
         </div>
 
         <Tabs defaultValue="currency" className="w-full">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-7 overflow-x-auto">
             <TabsTrigger value="currency">Currency</TabsTrigger>
             <TabsTrigger value="ic">IC Number</TabsTrigger>
             <TabsTrigger value="phone">Phone</TabsTrigger>
             <TabsTrigger value="date">Date Picker</TabsTrigger>
             <TabsTrigger value="setup">Setup Wizard</TabsTrigger>
             <TabsTrigger value="leave">Leave Request</TabsTrigger>
+            <TabsTrigger value="approval">Approval Card</TabsTrigger>
           </TabsList>
 
           <TabsContent value="currency">
@@ -543,6 +546,140 @@ export default function ComponentShowcase() {
                 />
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="approval">
+            <div className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Approval Card - Mobile Swipeable</CardTitle>
+                  <CardDescription>
+                    Tap-and-hold to approve (1 second), 30-second undo, project impact visibility
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <ApprovalCard
+                    data={{
+                      id: 'appr-001',
+                      type: 'leave',
+                      employee: {
+                        id: 'emp-123',
+                        name: 'Sarah Tan',
+                        avatar: '/placeholder.svg',
+                        role: 'Project Manager'
+                      },
+                      details: {
+                        dates: { start: new Date('2025-01-15'), end: new Date('2025-01-17') },
+                        category: 'Annual Leave',
+                        reason: 'Family vacation'
+                      },
+                      context: {
+                        balanceAfter: 5,
+                        teamOut: 2,
+                        projectImpact: {
+                          hours: 24,
+                          revenue: 3600,
+                          project: 'Project Alpha',
+                          replacement: { name: 'John Lee', availability: '16hrs free' }
+                        }
+                      },
+                      history: [
+                        { date: new Date('2024-12-15'), type: 'Annual Leave', status: 'Approved' },
+                        { date: new Date('2024-11-20'), type: 'Sick Leave', status: 'Approved' }
+                      ],
+                      policy: 'Annual leave requires 7-day advance notice. Up to 14 days per year.'
+                    } as ApprovalCardData}
+                    onApprove={(id) => {
+                      console.log('Approved:', id);
+                      alert('Leave request approved!');
+                    }}
+                    onReject={(id, reason) => {
+                      console.log('Rejected:', id, reason);
+                      alert(`Leave request rejected: ${reason}`);
+                    }}
+                    onRequestInfo={(id) => {
+                      console.log('Request info:', id);
+                      alert('Message sent to employee');
+                    }}
+                  />
+
+                  <ApprovalCard
+                    data={{
+                      id: 'appr-002',
+                      type: 'expense',
+                      employee: {
+                        id: 'emp-456',
+                        name: 'Ahmad Rahman',
+                        avatar: '/placeholder.svg',
+                        role: 'Sales Executive'
+                      },
+                      details: {
+                        amount: 450.00,
+                        category: 'Client Entertainment',
+                        reason: 'Client dinner meeting'
+                      },
+                      context: {
+                        urgent: true
+                      },
+                      history: [
+                        { date: new Date('2024-12-20'), type: 'Travel Expense', status: 'Approved' }
+                      ],
+                      policy: 'Client entertainment up to RM500 per event. Requires receipt.'
+                    } as ApprovalCardData}
+                    onApprove={(id) => {
+                      console.log('Approved:', id);
+                      alert('Expense approved!');
+                    }}
+                    onReject={(id, reason) => {
+                      console.log('Rejected:', id, reason);
+                      alert(`Expense rejected: ${reason}`);
+                    }}
+                    onRequestInfo={(id) => {
+                      console.log('Request info:', id);
+                      alert('Message sent to employee');
+                    }}
+                  />
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Features Demonstrated</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-2 text-sm">
+                    <li className="flex items-start gap-2">
+                      <span className="text-primary font-bold">✓</span>
+                      <span><strong>Tap-and-Hold Approval:</strong> Press and hold for 1 second with progress indicator</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-primary font-bold">✓</span>
+                      <span><strong>30-Second Undo:</strong> Optimistic UI with countdown timer and undo button</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-primary font-bold">✓</span>
+                      <span><strong>Collapsed/Expanded States:</strong> Tap chevron to expand with tabbed sections</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-primary font-bold">✓</span>
+                      <span><strong>Project Impact:</strong> Shows billable hours at risk and suggested replacements</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-primary font-bold">✓</span>
+                      <span><strong>Context Chips:</strong> Balance, team out, project impact, urgent badge</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-primary font-bold">✓</span>
+                      <span><strong>Rejection Flow:</strong> Bottom sheet with predefined reasons + custom text</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-primary font-bold">✓</span>
+                      <span><strong>History & Policy:</strong> Tabbed view with past requests and policy details</span>
+                    </li>
+                  </ul>
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
         </Tabs>
       </div>
