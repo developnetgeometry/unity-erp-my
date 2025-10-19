@@ -4,12 +4,15 @@ import { BottomTabBar } from "@/components/mobile/bottom-tab-bar";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast as newToast } from "@/lib/toast-api";
+import { modal } from "@/lib/modal-api";
+import { Modal } from "@/components/overlay/modal";
 import { useToast } from "@/hooks/use-toast";
 
 type TabValue = 'dashboard' | 'leave' | 'approvals' | 'more' | 'profile';
 
 export default function MobileDashboard() {
   const [activeTab, setActiveTab] = React.useState<TabValue>('dashboard');
+  const [showCustomModal, setShowCustomModal] = React.useState(false);
   const { toast } = useToast();
 
   // Sample data
@@ -168,6 +171,76 @@ export default function MobileDashboard() {
           </CardContent>
         </Card>
 
+        {/* Modal Demo Section */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Modal System Demo</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 gap-3">
+              <Button
+                onClick={async () => {
+                  const confirmed = await modal.confirm({
+                    title: 'Delete Employee',
+                    message: 'This action cannot be undone. Are you sure you want to delete this employee?',
+                    confirmLabel: 'Delete',
+                    cancelLabel: 'Cancel',
+                    variant: 'danger',
+                  });
+                  if (confirmed) {
+                    newToast.success('Employee deleted successfully');
+                  }
+                }}
+                variant="destructive"
+              >
+                Danger
+              </Button>
+
+              <Button
+                onClick={async () => {
+                  const confirmed = await modal.confirm({
+                    title: 'Submit Leave Request',
+                    message: 'Your leave request will be sent to your manager for approval.',
+                    confirmLabel: 'Submit',
+                    cancelLabel: 'Cancel',
+                    variant: 'default',
+                  });
+                  if (confirmed) {
+                    newToast.success('Leave request submitted');
+                  }
+                }}
+              >
+                Default
+              </Button>
+
+              <Button
+                onClick={async () => {
+                  const confirmed = await modal.confirm({
+                    title: 'Approve Expense',
+                    message: 'This expense is RM500 over budget. Do you still want to approve?',
+                    confirmLabel: 'Approve Anyway',
+                    cancelLabel: 'Cancel',
+                    variant: 'warning',
+                  });
+                  if (confirmed) {
+                    newToast.success('Expense approved');
+                  }
+                }}
+                variant="outline"
+              >
+                Warning
+              </Button>
+
+              <Button
+                onClick={() => setShowCustomModal(true)}
+                variant="outline"
+              >
+                Custom
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
         <Card>
           <CardHeader>
             <CardTitle>Current Tab</CardTitle>
@@ -195,6 +268,55 @@ export default function MobileDashboard() {
         userAvatar="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop"
         userName="Sarah Tan"
       />
+
+      {/* Custom Modal Example */}
+      <Modal
+        isOpen={showCustomModal}
+        onClose={() => setShowCustomModal(false)}
+        title="Employee Details"
+        description="Review employee information"
+        size="md"
+        footer={
+          <>
+            <Button variant="outline" onClick={() => setShowCustomModal(false)}>
+              Cancel
+            </Button>
+            <Button onClick={() => {
+              newToast.success('Changes saved');
+              setShowCustomModal(false);
+            }}>
+              Save Changes
+            </Button>
+          </>
+        }
+      >
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+            <input
+              type="text"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+              defaultValue="Sarah Tan"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Department</label>
+            <input
+              type="text"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+              defaultValue="Finance"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
+            <input
+              type="text"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+              defaultValue="Senior Accountant"
+            />
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

@@ -2,6 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ToastContainer } from "@/components/feedback/toast-container";
+import { ModalContainer } from "@/components/overlay/modal-container";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import PublicLayout from "./components/layouts/PublicLayout";
@@ -38,6 +39,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <ToastContainer />
+      <ModalContainer />
       <BrowserRouter>
         <Routes>
           {/* Public Routes */}
