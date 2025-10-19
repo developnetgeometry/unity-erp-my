@@ -212,16 +212,17 @@ export function InvoiceMatchingView({
         {/* Action Bar */}
         <Card>
           <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div className="flex gap-2">
+            <div className="flex items-center justify-between gap-4 flex-wrap">
+              <div className="flex gap-1.5 flex-wrap">
                 <Button
                   onClick={() => setShowApprovalDialog(true)}
                   disabled={!data.withinTolerance}
-                  className="gap-2"
+                  size="sm"
+                  className="gap-1.5"
                 >
                   <Check className="w-4 h-4" />
-                  Approve Payment
-                  <Badge variant="secondary" className="ml-2">
+                  Approve
+                  <Badge variant="secondary" className="ml-1 text-xs">
                     Alt+A
                   </Badge>
                 </Button>
@@ -229,11 +230,12 @@ export function InvoiceMatchingView({
                 <Button
                   variant="outline"
                   onClick={() => setShowHoldSheet(true)}
-                  className="gap-2"
+                  size="sm"
+                  className="gap-1.5"
                 >
                   <Clock className="w-4 h-4" />
-                  Hold for Review
-                  <Badge variant="secondary" className="ml-2">
+                  Hold
+                  <Badge variant="secondary" className="ml-1 text-xs">
                     Alt+H
                   </Badge>
                 </Button>
@@ -241,11 +243,12 @@ export function InvoiceMatchingView({
                 <Button
                   variant="destructive"
                   onClick={() => setShowRejectSheet(true)}
-                  className="gap-2"
+                  size="sm"
+                  className="gap-1.5"
                 >
                   <X className="w-4 h-4" />
-                  Reject Invoice
-                  <Badge variant="secondary" className="ml-2">
+                  Reject
+                  <Badge variant="secondary" className="ml-1 text-xs">
                     Alt+R
                   </Badge>
                 </Button>
@@ -253,25 +256,24 @@ export function InvoiceMatchingView({
                 <Button
                   variant="ghost"
                   onClick={() => setShowClarificationSheet(true)}
-                  className="gap-2"
+                  size="sm"
+                  className="gap-1.5"
                 >
                   <MessageSquare className="w-4 h-4" />
-                  Request Clarification
-                  <Badge variant="secondary" className="ml-2">
+                  Clarify
+                  <Badge variant="secondary" className="ml-1 text-xs">
                     Ctrl+M
                   </Badge>
                 </Button>
               </div>
 
               {!data.withinTolerance && (
-                <div className="text-sm text-amber-700">
-                  <Alert variant="default" className="border-amber-200 bg-amber-50">
-                    <AlertDescription className="flex items-center gap-2 text-amber-900">
-                      <Clock className="w-4 h-4" />
-                      Requires override with justification
-                    </AlertDescription>
-                  </Alert>
-                </div>
+                <Alert variant="default" className="border-amber-200 bg-amber-50 flex-shrink-0">
+                  <AlertDescription className="flex items-center gap-2 text-amber-900">
+                    <Clock className="w-4 h-4" />
+                    Requires override with justification
+                  </AlertDescription>
+                </Alert>
               )}
             </div>
           </CardContent>
