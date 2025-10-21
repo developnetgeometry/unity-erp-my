@@ -26,10 +26,11 @@ export interface DepartmentInput {
 
 // Fetch all departments
 export const useDepartments = (search?: string) => {
-  const { session } = useAuth();
+  const { session, loading } = useAuth();
 
   return useQuery({
     queryKey: ['departments', search],
+    enabled: !!session && !loading,
     queryFn: async () => {
       console.log('useDepartments - Using session from context:', { 
         hasSession: !!session, 
@@ -76,28 +77,35 @@ export const useDepartments = (search?: string) => {
 // Create department
 export const useCreateDepartment = () => {
   const queryClient = useQueryClient();
-  const { session } = useAuth();
+  const { session, loading, ensureFreshToken } = useAuth();
 
   return useMutation({
     mutationFn: async (department: DepartmentInput) => {
-      console.log('useCreateDepartment - Using session from context:', { 
-        hasSession: !!session, 
-        userId: session?.user?.id,
-        tokenPreview: session?.access_token?.substring(0, 20) + '...'
+      console.log('useCreateDepartment - Starting mutation', {
+        hasSession: !!session,
+        loading,
+        department
       });
+
+      if (loading) {
+        throw new Error('Session is still loading. Please wait...');
+      }
+
+      // Ensure we have a fresh token
+      const freshSession = await ensureFreshToken();
       
-      if (!session?.access_token) {
+      if (!freshSession?.access_token) {
         throw new Error('No active session. Please sign in again.');
       }
 
-      console.log('Creating department:', department);
+      console.log('useCreateDepartment - Making API call with fresh token');
 
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/hr-departments`,
         {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${session.access_token}`,
+            'Authorization': `Bearer ${freshSession.access_token}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify(department),
@@ -113,7 +121,37 @@ export const useCreateDepartment = () => {
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         console.error('Create department failed:', errorData);
-        throw new Error(errorData.error || errorData.details || `Failed to create department: ${response.status}`);
+        
+        // Handle 401 with retry
+        if (response.status === 401) {
+          console.log('useCreateDepartment - 401 error, refreshing and retrying...');
+          const retrySession = await ensureFreshToken();
+          
+          if (!retrySession?.access_token) {
+            throw new Error('Authentication failed. Please sign in again.');
+          }
+
+          const retryResponse = await fetch(
+            `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/hr-departments`,
+            {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${retrySession.access_token}`,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(department),
+            }
+          );
+
+          if (!retryResponse.ok) {
+            const retryError = await retryResponse.json().catch(() => ({}));
+            throw new Error(retryError.details || retryError.message || retryError.error || 'Failed to create department');
+          }
+
+          return retryResponse.json() as Promise<Department>;
+        }
+        
+        throw new Error(errorData.details || errorData.message || errorData.error || `Failed to create department: ${response.status}`);
       }
 
       return response.json() as Promise<Department>;
@@ -127,18 +165,26 @@ export const useCreateDepartment = () => {
 // Update department
 export const useUpdateDepartment = () => {
   const queryClient = useQueryClient();
-  const { session } = useAuth();
+  const { session, loading, ensureFreshToken } = useAuth();
 
   return useMutation({
     mutationFn: async ({ id, ...department }: DepartmentInput & { id: string }) => {
-      if (!session?.access_token) throw new Error('Not authenticated');
+      if (loading) {
+        throw new Error('Session is still loading. Please wait...');
+      }
+
+      const freshSession = await ensureFreshToken();
+      
+      if (!freshSession?.access_token) {
+        throw new Error('No active session. Please sign in again.');
+      }
 
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/hr-departments/${id}`,
         {
           method: 'PATCH',
           headers: {
-            'Authorization': `Bearer ${session.access_token}`,
+            'Authorization': `Bearer ${freshSession.access_token}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify(department),
@@ -146,8 +192,8 @@ export const useUpdateDepartment = () => {
       );
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to update department');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.details || errorData.message || errorData.error || 'Failed to update department');
       }
 
       return response.json() as Promise<Department>;
@@ -161,26 +207,34 @@ export const useUpdateDepartment = () => {
 // Delete department
 export const useDeleteDepartment = () => {
   const queryClient = useQueryClient();
-  const { session } = useAuth();
+  const { session, loading, ensureFreshToken } = useAuth();
 
   return useMutation({
     mutationFn: async (id: string) => {
-      if (!session?.access_token) throw new Error('Not authenticated');
+      if (loading) {
+        throw new Error('Session is still loading. Please wait...');
+      }
+
+      const freshSession = await ensureFreshToken();
+      
+      if (!freshSession?.access_token) {
+        throw new Error('No active session. Please sign in again.');
+      }
 
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/hr-departments/${id}`,
         {
           method: 'DELETE',
           headers: {
-            'Authorization': `Bearer ${session.access_token}`,
+            'Authorization': `Bearer ${freshSession.access_token}`,
             'Content-Type': 'application/json',
           },
         }
       );
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || error.detail || 'Failed to delete department');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.detail || errorData.message || errorData.error || 'Failed to delete department');
       }
 
       return response.json();
