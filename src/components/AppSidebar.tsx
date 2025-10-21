@@ -49,20 +49,19 @@ const modules = [
     icon: LayoutDashboard,
     url: "/dashboard",
   },
-  {
-    title: "People & HR",
-    icon: Users,
+        {
+          title: "Human Resources",
+          icon: Users,
     items: [
       { title: "HR Dashboard", icon: UserCog, url: "/hr/dashboard" },
       { title: "Employee Management", icon: BadgeCheck, url: "/hr/employee-management" },
       { title: "Department Management", icon: Building2, url: "/hr/department-management" },
       { title: "Attendance Management", icon: Clock, url: "/hr/attendance-management" },
       { title: "Leave Management", icon: CalendarCheck, url: "/hr/leave-management" },
-      { title: "Payroll Management", icon: Wallet, url: "/hr/payroll-management" },
-      { title: "Compliance Dashboard", icon: ShieldCheck, url: "/hr/compliance-dashboard" },
-      { title: "Bulk Import", icon: Upload, url: "/hr/bulk-import" },
-      { title: "User Invitations", icon: Mail, url: "/hr/user-invitations" },
-    ],
+            { title: "Payroll Management", icon: Wallet, url: "/hr/payroll-management" },
+            { title: "Compliance Dashboard", icon: ShieldCheck, url: "/hr/compliance-dashboard" },
+            { title: "Bulk Import", icon: Upload, url: "/hr/bulk-import" },
+          ],
   },
   {
     title: "Finance & Accounting",
