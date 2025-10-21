@@ -63,10 +63,10 @@ const SignIn = () => {
         return;
       }
 
-      // Check if email is verified
+      // Check account status
       const { data: profile, error: profileError } = await supabase
         .from("profiles")
-        .select("email_verified, status, full_name")
+        .select("status, full_name, email_verified")
         .eq("id", authData.user.id)
         .single();
 
@@ -74,23 +74,22 @@ const SignIn = () => {
         console.error("Profile query error:", profileError);
       }
 
-      if (!profile?.email_verified) {
-        // Sign out the user
-        await supabase.auth.signOut();
-        
-        toast.error("Email not verified", {
-          description: "Please verify your email before signing in. Check your inbox for the verification link."
-        });
-        return;
-      }
-
-      if (profile.status !== "active") {
+      // Only check if account is active (removed email_verified check)
+      if (profile?.status !== "active") {
         await supabase.auth.signOut();
         
         toast.error("Account not active", {
           description: "Please contact support."
         });
         return;
+      }
+
+      // Optional: Show info toast if email not verified yet (non-blocking)
+      if (!profile?.email_verified) {
+        toast.info("Email verification pending", {
+          description: "Please check your inbox and verify your email to unlock all features.",
+          duration: 6000
+        });
       }
 
       toast.success(`Welcome back, ${profile.full_name}!`);

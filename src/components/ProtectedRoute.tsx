@@ -24,7 +24,8 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
             .eq("id", session.user.id)
             .single();
 
-          if (profile?.email_verified && profile?.status === "active") {
+          // Only check if account is active (removed email_verified check)
+          if (profile?.status === "active") {
             setIsAuthenticated(true);
           } else {
             setIsAuthenticated(false);
