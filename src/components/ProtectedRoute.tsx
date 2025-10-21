@@ -2,91 +2,53 @@ import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
 }
 
 const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
-  const [isLoading, setIsLoading] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const { session, loading: authLoading } = useAuth();
+  const [isCheckingProfile, setIsCheckingProfile] = useState(true);
+  const [isActive, setIsActive] = useState(false);
 
   useEffect(() => {
-    const checkAuth = async () => {
+    const checkProfile = async () => {
+      if (authLoading) return;
+      
+      if (!session?.user) {
+        setIsCheckingProfile(false);
+        setIsActive(false);
+        return;
+      }
+
       try {
-        const { data: { session } } = await supabase.auth.getSession();
-        
-        console.log('ProtectedRoute - Session check:', { 
-          hasSession: !!session, 
-          userId: session?.user?.id,
-          email: session?.user?.email 
-        });
-        
-        if (session?.user) {
-          // Check profile and auto-activate if needed
-          const { data: profile, error: profileError } = await supabase
-            .from("profiles")
-            .select("email_verified, status")
-            .eq("id", session.user.id)
-            .single();
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("status")
+          .eq("id", session.user.id)
+          .single();
 
-          console.log('ProtectedRoute - Profile check:', { 
-            profile, 
-            profileError: profileError?.message 
-          });
+        console.log('ProtectedRoute - Profile status:', profile?.status);
 
-          // Auto-activate users who are pending verification (for development)
-          if (profile && profile.status === "pending_verification") {
-            console.log('Auto-activating user...');
-            const { error: updateError } = await supabase
-              .from("profiles")
-              .update({ status: "active", email_verified: true })
-              .eq("id", session.user.id);
-            
-            if (updateError) {
-              console.error('Failed to auto-activate user:', updateError);
-            } else {
-              console.log('User auto-activated successfully');
-              setIsAuthenticated(true);
-              setIsLoading(false);
-              return;
-            }
-          }
-
-          // Check if account is active
-          if (profile?.status === "active") {
-            setIsAuthenticated(true);
-          } else {
-            console.log('User not active, status:', profile?.status);
-            setIsAuthenticated(false);
-          }
+        if (profile?.status === "active") {
+          setIsActive(true);
         } else {
-          console.log('No session found');
-          setIsAuthenticated(false);
+          setIsActive(false);
         }
       } catch (error) {
-        console.error("Auth check error:", error);
-        setIsAuthenticated(false);
+        console.error("Profile check error:", error);
+        setIsActive(false);
       } finally {
-        setIsLoading(false);
+        setIsCheckingProfile(false);
       }
     };
 
-    checkAuth();
+    checkProfile();
+  }, [session, authLoading]);
 
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (!session) {
-        setIsAuthenticated(false);
-      }
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, []);
-
-  if (isLoading) {
+  if (authLoading || isCheckingProfile) {
     return (
       <div className="min-h-screen w-full flex items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -94,7 +56,7 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     );
   }
 
-  if (!isAuthenticated) {
+  if (!session || !isActive) {
     return <Navigate to="/signin" replace />;
   }
 

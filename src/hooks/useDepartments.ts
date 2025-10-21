@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 export interface Department {
   id: string;
@@ -25,20 +26,19 @@ export interface DepartmentInput {
 
 // Fetch all departments
 export const useDepartments = (search?: string) => {
+  const { session } = useAuth();
+
   return useQuery({
     queryKey: ['departments', search],
     queryFn: async () => {
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      
-      console.log('useDepartments - Session check:', { 
+      console.log('useDepartments - Using session from context:', { 
         hasSession: !!session, 
         userId: session?.user?.id,
         email: session?.user?.email,
-        tokenPreview: session?.access_token?.substring(0, 20) + '...',
-        sessionError: sessionError?.message
+        tokenPreview: session?.access_token?.substring(0, 20) + '...'
       });
       
-      if (!session) {
+      if (!session?.access_token) {
         throw new Error('No active session. Please sign in again.');
       }
 
@@ -76,18 +76,17 @@ export const useDepartments = (search?: string) => {
 // Create department
 export const useCreateDepartment = () => {
   const queryClient = useQueryClient();
+  const { session } = useAuth();
 
   return useMutation({
     mutationFn: async (department: DepartmentInput) => {
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      
-      console.log('useCreateDepartment - Session check:', { 
+      console.log('useCreateDepartment - Using session from context:', { 
         hasSession: !!session, 
         userId: session?.user?.id,
-        sessionError: sessionError?.message
+        tokenPreview: session?.access_token?.substring(0, 20) + '...'
       });
       
-      if (!session) {
+      if (!session?.access_token) {
         throw new Error('No active session. Please sign in again.');
       }
 
@@ -128,11 +127,11 @@ export const useCreateDepartment = () => {
 // Update department
 export const useUpdateDepartment = () => {
   const queryClient = useQueryClient();
+  const { session } = useAuth();
 
   return useMutation({
     mutationFn: async ({ id, ...department }: DepartmentInput & { id: string }) => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error('Not authenticated');
+      if (!session?.access_token) throw new Error('Not authenticated');
 
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/hr-departments/${id}`,
@@ -162,11 +161,11 @@ export const useUpdateDepartment = () => {
 // Delete department
 export const useDeleteDepartment = () => {
   const queryClient = useQueryClient();
+  const { session } = useAuth();
 
   return useMutation({
     mutationFn: async (id: string) => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error('Not authenticated');
+      if (!session?.access_token) throw new Error('Not authenticated');
 
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/hr-departments/${id}`,
