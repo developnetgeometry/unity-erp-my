@@ -15,6 +15,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import type { Department } from '@/hooks/useDepartments';
+import { useAuth } from '@/contexts/AuthContext';
 
 const departmentSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters').max(100),
@@ -38,6 +39,7 @@ export const DepartmentFormModal = ({
   department,
   isLoading,
 }: DepartmentFormModalProps) => {
+  const { loading: authLoading } = useAuth();
   const {
     register,
     handleSubmit,
@@ -120,12 +122,12 @@ export const DepartmentFormModal = ({
               type="button"
               variant="outline"
               onClick={onClose}
-              disabled={isLoading}
+              disabled={isLoading || authLoading}
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={isLoading}>
-              {isLoading ? 'Saving...' : department ? 'Update' : 'Create'}
+            <Button type="submit" disabled={isLoading || authLoading}>
+              {authLoading ? 'Initializing...' : isLoading ? 'Saving...' : department ? 'Update' : 'Create'}
             </Button>
           </DialogFooter>
         </form>

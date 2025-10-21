@@ -4,7 +4,7 @@ project_id = "xrtgpkehiureaoxlxatu"
 verify_jwt = false
 
 [functions.hr-departments]
-verify_jwt = false
+verify_jwt = true
 
 [functions.register-company]
 verify_jwt = false

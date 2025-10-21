@@ -7,6 +7,7 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   refreshSession: () => Promise<void>;
+  ensureFreshToken: () => Promise<Session | null>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -15,6 +16,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const isTokenExpiringSoon = (currentSession: Session | null): boolean => {
+    if (!currentSession?.expires_at) return true;
+    
+    const expiresAt = currentSession.expires_at * 1000; // Convert to milliseconds
+    const now = Date.now();
+    const fiveMinutes = 5 * 60 * 1000;
+    
+    return expiresAt - now < fiveMinutes;
+  };
 
   const refreshSession = async () => {
     try {
@@ -35,6 +46,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(null);
       setUser(null);
     }
+  };
+
+  const ensureFreshToken = async (): Promise<Session | null> => {
+    console.log('AuthContext - Ensuring fresh token...', {
+      hasSession: !!session,
+      expiringSoon: isTokenExpiringSoon(session)
+    });
+
+    if (!session || isTokenExpiringSoon(session)) {
+      console.log('AuthContext - Refreshing token...');
+      await refreshSession();
+      
+      // Get the updated session
+      const { data: { session: freshSession } } = await supabase.auth.getSession();
+      return freshSession;
+    }
+    
+    return session;
   };
 
   useEffect(() => {
@@ -104,7 +133,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ session, user, loading, refreshSession }}>
+    <AuthContext.Provider value={{ session, user, loading, refreshSession, ensureFreshToken }}>
       {children}
     </AuthContext.Provider>
   );

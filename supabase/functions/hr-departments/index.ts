@@ -23,7 +23,11 @@ Deno.serve(async (req) => {
     if (!authHeader) {
       console.error('Missing authorization header');
       return new Response(
-        JSON.stringify({ error: 'Missing authorization header', details: 'Please sign in again' }),
+        JSON.stringify({ 
+          error: 'NO_SESSION', 
+          message: 'Missing authorization header',
+          details: 'Please sign in again to continue' 
+        }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -46,7 +50,8 @@ Deno.serve(async (req) => {
       console.error('Authentication failed:', authError);
       return new Response(
         JSON.stringify({ 
-          error: 'Not authenticated', 
+          error: 'INVALID_TOKEN',
+          message: 'Authentication failed',
           details: authError?.message || 'Invalid or expired token. Please sign in again.'
         }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -87,8 +92,9 @@ Deno.serve(async (req) => {
       console.error('Company not found for user');
       return new Response(
         JSON.stringify({ 
-          error: 'Company not found', 
-          details: 'User profile does not have an associated company'
+          error: 'NO_COMPANY',
+          message: 'Company not found',
+          details: 'Your user profile does not have an associated company. Please contact support.'
         }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
@@ -151,8 +157,9 @@ Deno.serve(async (req) => {
           console.error('User lacks admin permissions');
           return new Response(
             JSON.stringify({ 
-              error: 'Insufficient permissions', 
-              details: 'You must be a company admin to create departments'
+              error: 'INSUFFICIENT_PERMISSIONS',
+              message: 'Insufficient permissions',
+              details: 'You must be a company admin to create departments. Please contact your administrator.'
             }), 
             {
               status: 403,
