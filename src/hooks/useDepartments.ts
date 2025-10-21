@@ -28,13 +28,26 @@ export const useDepartments = (search?: string) => {
   return useQuery({
     queryKey: ['departments', search],
     queryFn: async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error('Not authenticated');
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      console.log('useDepartments - Session check:', { 
+        hasSession: !!session, 
+        userId: session?.user?.id,
+        email: session?.user?.email,
+        tokenPreview: session?.access_token?.substring(0, 20) + '...',
+        sessionError: sessionError?.message
+      });
+      
+      if (!session) {
+        throw new Error('No active session. Please sign in again.');
+      }
 
       const url = new URL(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/hr-departments`);
       if (search) {
         url.searchParams.append('search', search);
       }
+
+      console.log('Fetching departments from:', url.toString());
 
       const response = await fetch(url.toString(), {
         headers: {
@@ -43,9 +56,16 @@ export const useDepartments = (search?: string) => {
         },
       });
 
+      console.log('Department fetch response:', { 
+        status: response.status, 
+        statusText: response.statusText,
+        ok: response.ok
+      });
+
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to fetch departments');
+        const errorData = await response.json().catch(() => ({}));
+        console.error('Department fetch failed:', errorData);
+        throw new Error(errorData.error || errorData.details || `Failed to fetch departments: ${response.status}`);
       }
 
       return response.json() as Promise<Department[]>;
@@ -59,8 +79,19 @@ export const useCreateDepartment = () => {
 
   return useMutation({
     mutationFn: async (department: DepartmentInput) => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error('Not authenticated');
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      console.log('useCreateDepartment - Session check:', { 
+        hasSession: !!session, 
+        userId: session?.user?.id,
+        sessionError: sessionError?.message
+      });
+      
+      if (!session) {
+        throw new Error('No active session. Please sign in again.');
+      }
+
+      console.log('Creating department:', department);
 
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/hr-departments`,
@@ -74,9 +105,16 @@ export const useCreateDepartment = () => {
         }
       );
 
+      console.log('Create department response:', { 
+        status: response.status, 
+        statusText: response.statusText,
+        ok: response.ok
+      });
+
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to create department');
+        const errorData = await response.json().catch(() => ({}));
+        console.error('Create department failed:', errorData);
+        throw new Error(errorData.error || errorData.details || `Failed to create department: ${response.status}`);
       }
 
       return response.json() as Promise<Department>;

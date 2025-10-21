@@ -16,21 +16,52 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
         
+        console.log('ProtectedRoute - Session check:', { 
+          hasSession: !!session, 
+          userId: session?.user?.id,
+          email: session?.user?.email 
+        });
+        
         if (session?.user) {
-          // Check if email is verified
-          const { data: profile } = await supabase
+          // Check profile and auto-activate if needed
+          const { data: profile, error: profileError } = await supabase
             .from("profiles")
             .select("email_verified, status")
             .eq("id", session.user.id)
             .single();
 
-          // Only check if account is active (removed email_verified check)
+          console.log('ProtectedRoute - Profile check:', { 
+            profile, 
+            profileError: profileError?.message 
+          });
+
+          // Auto-activate users who are pending verification (for development)
+          if (profile && profile.status === "pending_verification") {
+            console.log('Auto-activating user...');
+            const { error: updateError } = await supabase
+              .from("profiles")
+              .update({ status: "active", email_verified: true })
+              .eq("id", session.user.id);
+            
+            if (updateError) {
+              console.error('Failed to auto-activate user:', updateError);
+            } else {
+              console.log('User auto-activated successfully');
+              setIsAuthenticated(true);
+              setIsLoading(false);
+              return;
+            }
+          }
+
+          // Check if account is active
           if (profile?.status === "active") {
             setIsAuthenticated(true);
           } else {
+            console.log('User not active, status:', profile?.status);
             setIsAuthenticated(false);
           }
         } else {
+          console.log('No session found');
           setIsAuthenticated(false);
         }
       } catch (error) {

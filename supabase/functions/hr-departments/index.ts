@@ -13,7 +13,20 @@ Deno.serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY')!;
-    const authHeader = req.headers.get('Authorization')!;
+    const authHeader = req.headers.get('Authorization');
+    
+    console.log('Authorization header present:', !!authHeader);
+    if (authHeader) {
+      console.log('Authorization header format:', authHeader.substring(0, 20) + '...');
+    }
+    
+    if (!authHeader) {
+      console.error('Missing authorization header');
+      return new Response(
+        JSON.stringify({ error: 'Missing authorization header', details: 'Please sign in again' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
     
     const supabase = createClient(supabaseUrl, supabaseKey, {
       global: { headers: { Authorization: authHeader } },
@@ -21,36 +34,64 @@ Deno.serve(async (req) => {
 
     // Get authenticated user
     const { data: { user }, error: authError } = await supabase.auth.getUser();
+    
+    console.log('Auth check result:', { 
+      userId: user?.id, 
+      email: user?.email,
+      hasError: !!authError,
+      errorMessage: authError?.message 
+    });
+    
     if (authError || !user) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      console.error('Authentication failed:', authError);
+      return new Response(
+        JSON.stringify({ 
+          error: 'Not authenticated', 
+          details: authError?.message || 'Invalid or expired token. Please sign in again.'
+        }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     // Check if user has admin role
-    const { data: hasRole } = await supabase.rpc('has_role', {
+    const { data: hasRole, error: roleError } = await supabase.rpc('has_role', {
       _user_id: user.id,
       _role: 'company_admin'
     });
 
-    const { data: hasSuperRole } = await supabase.rpc('has_role', {
+    const { data: hasSuperRole, error: superRoleError } = await supabase.rpc('has_role', {
       _user_id: user.id,
       _role: 'super_admin'
+    });
+
+    console.log('Role check:', { 
+      hasRole, 
+      hasSuperRole,
+      roleError: roleError?.message,
+      superRoleError: superRoleError?.message
     });
 
     const isAdmin = hasRole || hasSuperRole;
 
     // Get user's company_id
-    const { data: companyId } = await supabase.rpc('get_user_company_id', {
+    const { data: companyId, error: companyError } = await supabase.rpc('get_user_company_id', {
       _user_id: user.id
     });
 
+    console.log('Company ID check:', { 
+      companyId, 
+      companyError: companyError?.message 
+    });
+
     if (!companyId) {
-      return new Response(JSON.stringify({ error: 'Company not found' }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      console.error('Company not found for user');
+      return new Response(
+        JSON.stringify({ 
+          error: 'Company not found', 
+          details: 'User profile does not have an associated company'
+        }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     const url = new URL(req.url);
@@ -104,15 +145,26 @@ Deno.serve(async (req) => {
       }
 
       case 'POST': {
+        console.log('POST request - isAdmin:', isAdmin);
+        
         if (!isAdmin) {
-          return new Response(JSON.stringify({ error: 'Insufficient permissions' }), {
-            status: 403,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          });
+          console.error('User lacks admin permissions');
+          return new Response(
+            JSON.stringify({ 
+              error: 'Insufficient permissions', 
+              details: 'You must be a company admin to create departments'
+            }), 
+            {
+              status: 403,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            }
+          );
         }
 
         const body = await req.json();
         const { name, description, manager_id } = body;
+
+        console.log('Creating department with data:', { name, description, manager_id, companyId });
 
         if (!name) {
           return new Response(JSON.stringify({ error: 'Name is required' }), {
@@ -135,9 +187,12 @@ Deno.serve(async (req) => {
           `)
           .single();
 
-        if (error) throw error;
+        if (error) {
+          console.error('Department creation error:', error);
+          throw error;
+        }
 
-        console.log('Department created:', data);
+        console.log('Department created successfully:', data);
         return new Response(JSON.stringify(data), {
           status: 201,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
