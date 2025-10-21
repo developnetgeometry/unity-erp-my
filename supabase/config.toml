@@ -1,1 +1,13 @@
 project_id = "xrtgpkehiureaoxlxatu"
+
+[functions.hr-employees]
+verify_jwt = false
+
+[functions.hr-departments]
+verify_jwt = false
+
+[functions.register-company]
+verify_jwt = false
+
+[functions.send-verification-email]
+verify_jwt = false

@@ -26,6 +26,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Employee } from '@/hooks/useEmployees';
+import { useDepartments } from '@/hooks/useDepartments';
 import { useEffect } from 'react';
 
 const employeeSchema = z.object({
@@ -56,6 +57,8 @@ export const EmployeeFormModal = ({
   employee,
   isLoading,
 }: EmployeeFormModalProps) => {
+  const { data: departments = [] } = useDepartments();
+  
   const form = useForm<EmployeeFormValues>({
     resolver: zodResolver(employeeSchema),
     defaultValues: {
@@ -193,9 +196,20 @@ export const EmployeeFormModal = ({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Department *</FormLabel>
-                    <FormControl>
-                      <Input placeholder="IT" {...field} />
-                    </FormControl>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select department" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {departments.map((dept) => (
+                          <SelectItem key={dept.id} value={dept.name}>
+                            {dept.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
