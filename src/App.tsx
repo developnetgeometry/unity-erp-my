@@ -7,7 +7,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import PublicLayout from "./components/layouts/PublicLayout";
 import AuthenticatedLayout from "./components/layouts/AuthenticatedLayout";
-import ProtectedRoute from "./components/ProtectedRoute";
 import Landing from "./pages/Landing";
 import Register from "./pages/Register";
 import SignIn from "./pages/SignIn";
@@ -51,32 +50,32 @@ const App = () => (
             <Route path="/mobile-dashboard" element={<MobileDashboard />} />
           </Route>
 
-          {/* Authenticated Routes */}
+          {/* App Routes - No Auth Required */}
           <Route element={<AuthenticatedLayout />}>
-            <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+            <Route path="/dashboard" element={<Dashboard />} />
             
             {/* People & HR Routes */}
-            <Route path="/hr/dashboard" element={<ProtectedRoute><HRDashboard /></ProtectedRoute>} />
-            <Route path="/hr/employee-management" element={<ProtectedRoute><EmployeeManagement /></ProtectedRoute>} />
-            <Route path="/hr/department-management" element={<ProtectedRoute><DepartmentManagement /></ProtectedRoute>} />
-            <Route path="/hr/attendance-management" element={<ProtectedRoute><AttendanceManagement /></ProtectedRoute>} />
-            <Route path="/hr/leave-management" element={<ProtectedRoute><LeaveManagement /></ProtectedRoute>} />
-            <Route path="/hr/payroll-management" element={<ProtectedRoute><PayrollManagement /></ProtectedRoute>} />
-            <Route path="/hr/compliance-dashboard" element={<ProtectedRoute><ComplianceDashboard /></ProtectedRoute>} />
-            <Route path="/hr/bulk-import" element={<ProtectedRoute><BulkImport /></ProtectedRoute>} />
-            <Route path="/hr/user-invitations" element={<ProtectedRoute><UserInvitations /></ProtectedRoute>} />
+            <Route path="/hr/dashboard" element={<HRDashboard />} />
+            <Route path="/hr/employee-management" element={<EmployeeManagement />} />
+            <Route path="/hr/department-management" element={<DepartmentManagement />} />
+            <Route path="/hr/attendance-management" element={<AttendanceManagement />} />
+            <Route path="/hr/leave-management" element={<LeaveManagement />} />
+            <Route path="/hr/payroll-management" element={<PayrollManagement />} />
+            <Route path="/hr/compliance-dashboard" element={<ComplianceDashboard />} />
+            <Route path="/hr/bulk-import" element={<BulkImport />} />
+            <Route path="/hr/user-invitations" element={<UserInvitations />} />
             
             {/* Finance Routes */}
-            <Route path="/finance/dashboard" element={<ProtectedRoute><FinanceDashboard /></ProtectedRoute>} />
+            <Route path="/finance/dashboard" element={<FinanceDashboard />} />
             
             {/* Inventory Routes */}
-            <Route path="/inventory/items" element={<ProtectedRoute><Inventory /></ProtectedRoute>} />
+            <Route path="/inventory/items" element={<Inventory />} />
             
             {/* Project Routes */}
-            <Route path="/projects" element={<ProtectedRoute><Projects /></ProtectedRoute>} />
+            <Route path="/projects" element={<Projects />} />
             
             {/* Admin Routes */}
-            <Route path="/admin/company" element={<ProtectedRoute><Company /></ProtectedRoute>} />
+            <Route path="/admin/company" element={<Company />} />
           </Route>
           
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

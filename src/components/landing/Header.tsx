@@ -45,8 +45,8 @@ export const Header = () => {
           >
             Contact
           </button>
-          <Link to="/signin">
-            <Button variant="outline">Sign In</Button>
+          <Link to="/dashboard">
+            <Button variant="outline">Explore Demo</Button>
           </Link>
         </nav>
 
@@ -87,8 +87,8 @@ export const Header = () => {
             >
               Contact
             </button>
-            <Link to="/signin" className="w-full">
-              <Button variant="outline" className="w-full">Sign In</Button>
+            <Link to="/dashboard" className="w-full">
+              <Button variant="outline" className="w-full">Explore Demo</Button>
             </Link>
           </nav>
         </div>

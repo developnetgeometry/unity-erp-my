@@ -23,9 +23,9 @@ export const HeroSection = () => {
               modern digital economy.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-              <Link to="/register">
+              <Link to="/dashboard">
                 <Button size="lg" className="w-full sm:w-auto gap-2">
-                  Register Your Company
+                  Explore Demo
                   <ArrowRight className="h-4 w-4" />
                 </Button>
               </Link>

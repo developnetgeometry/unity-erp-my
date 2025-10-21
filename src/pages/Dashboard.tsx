@@ -15,6 +15,21 @@ import {
 const Index = () => {
   return (
     <div className="space-y-6">
+      {/* Demo Mode Banner */}
+      <div className="rounded-lg bg-primary/10 border border-primary/20 p-4">
+        <div className="flex items-center gap-3">
+          <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center">
+            <span className="text-2xl">🚀</span>
+          </div>
+          <div>
+            <h3 className="font-semibold text-primary">Demo Mode Active</h3>
+            <p className="text-sm text-muted-foreground">
+              You're exploring ERP One with sample data. No authentication required.
+            </p>
+          </div>
+        </div>
+      </div>
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>

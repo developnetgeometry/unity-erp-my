@@ -112,16 +112,10 @@ export function AppSidebar() {
   const isCollapsed = state === "collapsed";
   const navigate = useNavigate();
 
-  const handleLogout = async () => {
-    try {
-      const { supabase } = await import("@/integrations/supabase/client");
-      await supabase.auth.signOut();
-      toast.success("Logged out successfully");
-      navigate("/signin");
-    } catch (error) {
-      console.error("Logout error:", error);
-      toast.error("Logout failed");
-    }
+  const handleLogout = () => {
+    // Logout functionality disabled (no authentication)
+    toast.info("Logout functionality is disabled in demo mode");
+    navigate("/");
   };
 
   return (
