@@ -72,62 +72,40 @@ const Register = () => {
         },
       });
 
-      // Parse error response from the edge function
-      // When edge function returns non-2xx status, data contains the error response
-      if (error) {
-        console.error("Registration error:", error);
-        // If we have result data, it contains the detailed error from edge function
-        if (result && !result?.success) {
-          const errorMsg = result?.error || "Registration failed";
-          const detailedMsg = result?.message || errorMsg;
-          const errorAction = result?.action;
-          
-          // Handle specific error cases
-          if (errorMsg.includes("email already exists") || errorAction === "signin") {
-            toast.error("Account Already Exists", {
-              description: detailedMsg,
-              action: {
-                label: "Sign In",
-                onClick: () => navigate("/signin")
-              }
-            });
-          } else if (errorMsg.includes("registration number is already in use")) {
-            toast.error("Company Already Registered", {
-              description: detailedMsg
-            });
-          } else {
-            toast.error("Registration Failed", {
-              description: detailedMsg
-            });
-          }
-          return;
-        }
-        // If no result data, throw generic error
-        throw new Error(error.message || "Failed to register company");
-      }
-
-      if (!result?.success) {
-        console.error("Registration failed:", result);
-        const errorMsg = result?.error || "Registration failed";
-        const detailedMsg = result?.message || errorMsg;
+      // Handle errors - when edge function returns non-2xx, result contains error details
+      if (error || (result && !result?.success)) {
+        console.error("Registration error:", error, result);
+        
+        // Extract error details from result (edge function response)
+        const errorMsg = result?.error || error?.message || "Registration failed";
+        const detailedMsg = result?.message || result?.details || errorMsg;
         const errorAction = result?.action;
         
-        // Handle specific error cases
-        if (errorMsg.includes("email already exists") || errorAction === "signin") {
+        // Handle specific error cases with clear user guidance
+        if (errorMsg.toLowerCase().includes("email already exists") || errorAction === "signin") {
           toast.error("Account Already Exists", {
             description: detailedMsg,
             action: {
               label: "Sign In",
               onClick: () => navigate("/signin")
-            }
+            },
+            duration: 6000
           });
-        } else if (errorMsg.includes("registration number is already in use")) {
+        } else if (errorMsg.toLowerCase().includes("registration number") && 
+                   errorMsg.toLowerCase().includes("already")) {
+          toast.error("Registration Number Already Used", {
+            description: detailedMsg || "This registration number is already registered. Please use a different registration number or contact your administrator.",
+            duration: 8000
+          });
+        } else if (errorAction === "contact_admin") {
           toast.error("Company Already Registered", {
-            description: detailedMsg
+            description: detailedMsg,
+            duration: 8000
           });
         } else {
           toast.error("Registration Failed", {
-            description: detailedMsg
+            description: detailedMsg,
+            duration: 6000
           });
         }
         return;

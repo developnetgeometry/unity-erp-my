@@ -86,14 +86,28 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     // Step 2: Check if company with this registration number already exists
-    console.log('Checking for existing company...');
-    const { data: existingCompany } = await supabaseAdmin
+    console.log('Checking for existing company with registration number:', registrationNo);
+    const { data: existingCompany, error: companyCheckError } = await supabaseAdmin
       .from('companies')
       .select('id')
       .eq('registration_no', registrationNo)
       .maybeSingle();
 
+    if (companyCheckError) {
+      console.error('Error checking for existing company:', companyCheckError);
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: 'Database error while checking company',
+          details: companyCheckError.message
+        }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     if (existingCompany) {
+      console.log('Found existing company with ID:', existingCompany.id);
+      
       // Check if company has any associated users
       const { data: companyProfiles, error: profileCheckError } = await supabaseAdmin
         .from('profiles')
@@ -103,21 +117,33 @@ const handler = async (req: Request): Promise<Response> => {
 
       if (profileCheckError) {
         console.error('Error checking company profiles:', profileCheckError);
+        return new Response(
+          JSON.stringify({ 
+            success: false, 
+            error: 'Database error while checking company users',
+            details: profileCheckError.message
+          }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
       }
+
+      console.log('Found', companyProfiles?.length || 0, 'profiles for company');
 
       if (companyProfiles && companyProfiles.length > 0) {
         // Company has users - this is a genuine duplicate
+        console.log('Company is active with users - returning duplicate error');
         return new Response(
           JSON.stringify({ 
             success: false, 
             error: 'This company registration number is already in use',
-            message: 'If you are an employee of this company, please contact your administrator for access.'
+            message: 'This registration number is already registered. If you are an employee of this company, please contact your administrator for access.',
+            action: 'contact_admin'
           }),
           { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       } else {
         // Orphaned company record - clean it up and continue
-        console.log('Removing orphaned company record:', existingCompany.id);
+        console.log('Found orphaned company record (no users) - attempting cleanup');
         const { error: deleteError } = await supabaseAdmin
           .from('companies')
           .delete()
@@ -125,10 +151,20 @@ const handler = async (req: Request): Promise<Response> => {
         
         if (deleteError) {
           console.error('Error deleting orphaned company:', deleteError);
-        } else {
-          console.log('Orphaned company removed successfully');
+          return new Response(
+            JSON.stringify({ 
+              success: false, 
+              error: 'Unable to process registration',
+              message: 'A registration issue was detected. Please contact support.',
+              details: deleteError.message
+            }),
+            { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
         }
+        console.log('Orphaned company record removed successfully - proceeding with registration');
       }
+    } else {
+      console.log('No existing company found - proceeding with new registration');
     }
 
     // Step 3: Create company record
