@@ -14,6 +14,56 @@ export type Database = {
   }
   public: {
     Tables: {
+      attendance_config: {
+        Row: {
+          auto_clockout_enabled: boolean | null
+          company_id: string
+          correction_window_hours: number | null
+          created_at: string
+          geofence_radius_meters: number | null
+          grace_period_minutes: number | null
+          id: string
+          notification_settings: Json | null
+          ot_auto_close_hours: number | null
+          updated_at: string
+          work_days: Json | null
+        }
+        Insert: {
+          auto_clockout_enabled?: boolean | null
+          company_id: string
+          correction_window_hours?: number | null
+          created_at?: string
+          geofence_radius_meters?: number | null
+          grace_period_minutes?: number | null
+          id?: string
+          notification_settings?: Json | null
+          ot_auto_close_hours?: number | null
+          updated_at?: string
+          work_days?: Json | null
+        }
+        Update: {
+          auto_clockout_enabled?: boolean | null
+          company_id?: string
+          correction_window_hours?: number | null
+          created_at?: string
+          geofence_radius_meters?: number | null
+          grace_period_minutes?: number | null
+          id?: string
+          notification_settings?: Json | null
+          ot_auto_close_hours?: number | null
+          updated_at?: string
+          work_days?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attendance_config_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: true
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       attendance_corrections: {
         Row: {
           attachment_url: string | null
@@ -22,6 +72,7 @@ export type Database = {
           created_at: string
           employee_id: string
           id: string
+          is_within_deadline: boolean | null
           reason: string
           requested_clock_in: string | null
           requested_clock_out: string | null
@@ -29,6 +80,7 @@ export type Database = {
           reviewed_by: string | null
           reviewer_notes: string | null
           status: Database["public"]["Enums"]["correction_status"]
+          submission_deadline: string | null
           updated_at: string
         }
         Insert: {
@@ -38,6 +90,7 @@ export type Database = {
           created_at?: string
           employee_id: string
           id?: string
+          is_within_deadline?: boolean | null
           reason: string
           requested_clock_in?: string | null
           requested_clock_out?: string | null
@@ -45,6 +98,7 @@ export type Database = {
           reviewed_by?: string | null
           reviewer_notes?: string | null
           status?: Database["public"]["Enums"]["correction_status"]
+          submission_deadline?: string | null
           updated_at?: string
         }
         Update: {
@@ -54,6 +108,7 @@ export type Database = {
           created_at?: string
           employee_id?: string
           id?: string
+          is_within_deadline?: boolean | null
           reason?: string
           requested_clock_in?: string | null
           requested_clock_out?: string | null
@@ -61,6 +116,7 @@ export type Database = {
           reviewed_by?: string | null
           reviewer_notes?: string | null
           status?: Database["public"]["Enums"]["correction_status"]
+          submission_deadline?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -90,11 +146,15 @@ export type Database = {
           clock_out_latitude: number | null
           clock_out_longitude: number | null
           clock_out_time: string | null
+          correction_id: string | null
           created_at: string
           employee_id: string
           hours_worked: number | null
           id: string
           is_manually_adjusted: boolean
+          is_provisional: boolean | null
+          leave_id: string | null
+          locked_for_payroll: boolean | null
           notes: string | null
           overtime_hours: number | null
           shift_id: string | null
@@ -111,11 +171,15 @@ export type Database = {
           clock_out_latitude?: number | null
           clock_out_longitude?: number | null
           clock_out_time?: string | null
+          correction_id?: string | null
           created_at?: string
           employee_id: string
           hours_worked?: number | null
           id?: string
           is_manually_adjusted?: boolean
+          is_provisional?: boolean | null
+          leave_id?: string | null
+          locked_for_payroll?: boolean | null
           notes?: string | null
           overtime_hours?: number | null
           shift_id?: string | null
@@ -132,11 +196,15 @@ export type Database = {
           clock_out_latitude?: number | null
           clock_out_longitude?: number | null
           clock_out_time?: string | null
+          correction_id?: string | null
           created_at?: string
           employee_id?: string
           hours_worked?: number | null
           id?: string
           is_manually_adjusted?: boolean
+          is_provisional?: boolean | null
+          leave_id?: string | null
+          locked_for_payroll?: boolean | null
           notes?: string | null
           overtime_hours?: number | null
           shift_id?: string | null
@@ -146,10 +214,24 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "attendance_records_correction_id_fkey"
+            columns: ["correction_id"]
+            isOneToOne: false
+            referencedRelation: "attendance_corrections"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "attendance_records_employee_id_fkey"
             columns: ["employee_id"]
             isOneToOne: false
             referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_records_leave_id_fkey"
+            columns: ["leave_id"]
+            isOneToOne: false
+            referencedRelation: "employee_leaves"
             referencedColumns: ["id"]
           },
           {
@@ -293,6 +375,82 @@ export type Database = {
           },
         ]
       }
+      employee_leaves: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          attachment_url: string | null
+          company_id: string
+          created_at: string
+          employee_id: string
+          end_date: string
+          id: string
+          leave_type: Database["public"]["Enums"]["leave_type"]
+          reason: string
+          rejection_reason: string | null
+          start_date: string
+          status: Database["public"]["Enums"]["leave_status"]
+          total_days: number
+          updated_at: string
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          attachment_url?: string | null
+          company_id: string
+          created_at?: string
+          employee_id: string
+          end_date: string
+          id?: string
+          leave_type: Database["public"]["Enums"]["leave_type"]
+          reason: string
+          rejection_reason?: string | null
+          start_date: string
+          status?: Database["public"]["Enums"]["leave_status"]
+          total_days: number
+          updated_at?: string
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          attachment_url?: string | null
+          company_id?: string
+          created_at?: string
+          employee_id?: string
+          end_date?: string
+          id?: string
+          leave_type?: Database["public"]["Enums"]["leave_type"]
+          reason?: string
+          rejection_reason?: string | null
+          start_date?: string
+          status?: Database["public"]["Enums"]["leave_status"]
+          total_days?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_leaves_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_leaves_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_leaves_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       employee_shifts: {
         Row: {
           created_at: string
@@ -413,6 +571,142 @@ export type Database = {
             columns: ["department_id"]
             isOneToOne: false
             referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notification_log: {
+        Row: {
+          created_at: string
+          data: Json | null
+          employee_id: string
+          id: string
+          message: string
+          notification_type: Database["public"]["Enums"]["notification_type"]
+          read_at: string | null
+          sent_at: string
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          data?: Json | null
+          employee_id: string
+          id?: string
+          message: string
+          notification_type: Database["public"]["Enums"]["notification_type"]
+          read_at?: string | null
+          sent_at?: string
+          title: string
+        }
+        Update: {
+          created_at?: string
+          data?: Json | null
+          employee_id?: string
+          id?: string
+          message?: string
+          notification_type?: Database["public"]["Enums"]["notification_type"]
+          read_at?: string | null
+          sent_at?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_log_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      overtime_sessions: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          attendance_record_id: string
+          auto_closed_at: string | null
+          created_at: string
+          employee_id: string
+          id: string
+          is_approved: boolean | null
+          ot_in_latitude: number
+          ot_in_longitude: number
+          ot_in_time: string
+          ot_out_latitude: number | null
+          ot_out_longitude: number | null
+          ot_out_time: string | null
+          site_id: string
+          status: string
+          total_ot_hours: number | null
+          updated_at: string
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          attendance_record_id: string
+          auto_closed_at?: string | null
+          created_at?: string
+          employee_id: string
+          id?: string
+          is_approved?: boolean | null
+          ot_in_latitude: number
+          ot_in_longitude: number
+          ot_in_time: string
+          ot_out_latitude?: number | null
+          ot_out_longitude?: number | null
+          ot_out_time?: string | null
+          site_id: string
+          status?: string
+          total_ot_hours?: number | null
+          updated_at?: string
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          attendance_record_id?: string
+          auto_closed_at?: string | null
+          created_at?: string
+          employee_id?: string
+          id?: string
+          is_approved?: boolean | null
+          ot_in_latitude?: number
+          ot_in_longitude?: number
+          ot_in_time?: string
+          ot_out_latitude?: number | null
+          ot_out_longitude?: number | null
+          ot_out_time?: string | null
+          site_id?: string
+          status?: string
+          total_ot_hours?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "overtime_sessions_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "overtime_sessions_attendance_record_id_fkey"
+            columns: ["attendance_record_id"]
+            isOneToOne: false
+            referencedRelation: "attendance_records"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "overtime_sessions_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "overtime_sessions_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "work_sites"
             referencedColumns: ["id"]
           },
         ]
@@ -649,6 +943,18 @@ export type Database = {
         }
         Returns: Database["public"]["Enums"]["attendance_status"]
       }
+      get_attendance_config: {
+        Args: { p_company_id: string }
+        Returns: {
+          auto_clockout_enabled: boolean
+          correction_window_hours: number
+          geofence_radius_meters: number
+          grace_period_minutes: number
+          notification_settings: Json
+          ot_auto_close_hours: number
+          work_days: Json
+        }[]
+      }
       get_user_company_id: {
         Args: { _user_id: string }
         Returns: string
@@ -658,6 +964,10 @@ export type Database = {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
+        Returns: boolean
+      }
+      is_employee_on_leave: {
+        Args: { p_date: string; p_employee_id: string }
         Returns: boolean
       }
       validate_geofence: {
@@ -681,6 +991,22 @@ export type Database = {
         | "holiday"
       correction_status: "pending" | "approved" | "rejected"
       correction_type: "clock_in" | "clock_out" | "both" | "full_record"
+      leave_status: "pending" | "approved" | "rejected" | "cancelled"
+      leave_type:
+        | "annual"
+        | "sick"
+        | "emergency"
+        | "unpaid"
+        | "maternity"
+        | "paternity"
+      notification_type:
+        | "late_arrival"
+        | "missed_clockout"
+        | "ot_reminder"
+        | "correction_approved"
+        | "correction_rejected"
+        | "auto_clockout"
+        | "ot_auto_closed"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -825,6 +1151,24 @@ export const Constants = {
       ],
       correction_status: ["pending", "approved", "rejected"],
       correction_type: ["clock_in", "clock_out", "both", "full_record"],
+      leave_status: ["pending", "approved", "rejected", "cancelled"],
+      leave_type: [
+        "annual",
+        "sick",
+        "emergency",
+        "unpaid",
+        "maternity",
+        "paternity",
+      ],
+      notification_type: [
+        "late_arrival",
+        "missed_clockout",
+        "ot_reminder",
+        "correction_approved",
+        "correction_rejected",
+        "auto_clockout",
+        "ot_auto_closed",
+      ],
     },
   },
 } as const
