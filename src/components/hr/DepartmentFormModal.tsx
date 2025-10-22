@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -13,18 +13,17 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
+import { Plus, X } from 'lucide-react';
 import type { Department } from '@/hooks/useDepartments';
 import { useAuth } from '@/contexts/AuthContext';
 
 const departmentSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters').max(100),
-  positions: z.string().optional(),
 });
 
 type DepartmentFormData = {
   name: string;
-  positions?: string;
 };
 
 type DepartmentFormOutput = {
@@ -48,6 +47,9 @@ export const DepartmentFormModal = ({
   isLoading,
 }: DepartmentFormModalProps) => {
   const { loading: authLoading } = useAuth();
+  const [positions, setPositions] = useState<string[]>(department?.positions || []);
+  const [newPosition, setNewPosition] = useState('');
+  
   const {
     register,
     handleSubmit,
@@ -57,30 +59,33 @@ export const DepartmentFormModal = ({
     resolver: zodResolver(departmentSchema),
     defaultValues: {
       name: department?.name || '',
-      positions: department?.positions?.join('\n') || '',
     },
   });
 
   useEffect(() => {
     if (department) {
-      reset({
-        name: department.name,
-        positions: department.positions?.join('\n') || '',
-      });
+      reset({ name: department.name });
+      setPositions(department.positions || []);
     } else {
-      reset({
-        name: '',
-        positions: '',
-      });
+      reset({ name: '' });
+      setPositions([]);
     }
+    setNewPosition('');
   }, [department, reset]);
 
+  const addPosition = () => {
+    const trimmed = newPosition.trim();
+    if (trimmed && !positions.includes(trimmed)) {
+      setPositions([...positions, trimmed]);
+      setNewPosition('');
+    }
+  };
+
+  const removePosition = (index: number) => {
+    setPositions(positions.filter((_, i) => i !== index));
+  };
+
   const handleFormSubmit = (data: DepartmentFormData) => {
-    // Transform positions string to array
-    const positions = data.positions
-      ? data.positions.split('\n').map(p => p.trim()).filter(p => p.length > 0)
-      : [];
-    
     onSubmit({
       name: data.name,
       positions,
@@ -117,20 +122,57 @@ export const DepartmentFormModal = ({
             )}
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="positions">Positions</Label>
-            <Textarea
-              id="positions"
-              placeholder="Enter positions for this department (one per line)&#10;e.g., Software Developer&#10;IT Manager&#10;Network Engineer"
-              rows={5}
-              {...register('positions')}
-              disabled={isLoading}
-            />
-            {errors.positions && (
-              <p className="text-sm text-destructive">
-                {errors.positions.message as string}
-              </p>
+          <div className="space-y-3">
+            <Label>Positions</Label>
+            
+            {/* Display existing positions as badges */}
+            {positions.length > 0 && (
+              <div className="flex flex-wrap gap-2 p-3 border rounded-md bg-muted/50">
+                {positions.map((position, index) => (
+                  <Badge 
+                    key={index} 
+                    variant="secondary" 
+                    className="flex items-center gap-1 px-3 py-1"
+                  >
+                    {position}
+                    <button
+                      type="button"
+                      onClick={() => removePosition(index)}
+                      disabled={isLoading}
+                      className="ml-1 hover:text-destructive transition-colors"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </Badge>
+                ))}
+              </div>
             )}
+
+            {/* Add new position */}
+            <div className="flex gap-2">
+              <Input
+                placeholder="Enter position name (e.g., Software Developer)"
+                value={newPosition}
+                onChange={(e) => setNewPosition(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    addPosition();
+                  }
+                }}
+                disabled={isLoading}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                onClick={addPosition}
+                disabled={isLoading || !newPosition.trim()}
+                className="shrink-0"
+              >
+                <Plus className="h-4 w-4 mr-1" />
+                Add
+              </Button>
+            </div>
           </div>
 
           <DialogFooter>
