@@ -15,16 +15,16 @@ const AttendanceManagement = () => {
   // Filters state
   const [startDate, setStartDate] = useState(today);
   const [endDate, setEndDate] = useState(today);
-  const [statusFilter, setStatusFilter] = useState<string>('');
-  const [departmentFilter, setDepartmentFilter] = useState<string>('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [departmentFilter, setDepartmentFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
 
   // Fetch data with filters
   const { data: records = [], isLoading, refetch } = useAttendanceRecords({
     startDate,
     endDate,
-    status: statusFilter || undefined,
-    department: departmentFilter || undefined,
+    status: statusFilter !== 'all' ? statusFilter : undefined,
+    department: departmentFilter !== 'all' ? departmentFilter : undefined,
     search: searchQuery || undefined,
   });
 
@@ -109,7 +109,7 @@ const AttendanceManagement = () => {
                 <SelectValue placeholder="All Statuses" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Statuses</SelectItem>
+                <SelectItem value="all">All Statuses</SelectItem>
                 <SelectItem value="on_time">On Time</SelectItem>
                 <SelectItem value="late">Late</SelectItem>
                 <SelectItem value="absent">Absent</SelectItem>
@@ -124,7 +124,7 @@ const AttendanceManagement = () => {
                 <SelectValue placeholder="All Departments" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Departments</SelectItem>
+                <SelectItem value="all">All Departments</SelectItem>
                 {departments.map((dept) => (
                   <SelectItem key={dept.id} value={dept.id}>
                     {dept.name}
