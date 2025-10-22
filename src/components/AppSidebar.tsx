@@ -58,7 +58,6 @@ const modules = [
       { title: "Employee Management", icon: BadgeCheck, url: "/hr/employee-management" },
       { title: "Department Management", icon: Building2, url: "/hr/department-management" },
       { title: "Attendance Management", icon: Clock, url: "/hr/attendance-management" },
-      { title: "Attendance Report", icon: FileBarChart, url: "/hr/attendance-report" },
       { title: "Leave Management", icon: CalendarCheck, url: "/hr/leave-management" },
             { title: "Payroll Management", icon: Wallet, url: "/hr/payroll-management" },
             { title: "Compliance Dashboard", icon: ShieldCheck, url: "/hr/compliance-dashboard" },

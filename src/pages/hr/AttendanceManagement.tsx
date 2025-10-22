@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Clock, CheckCircle, XCircle, AlertCircle, RefreshCw, MapPin, AlertTriangle, Filter, Search, Plus, Pencil, Trash2, Save, Settings } from 'lucide-react';
+import { Clock, CheckCircle, XCircle, AlertCircle, RefreshCw, MapPin, AlertTriangle, Filter, Search, Plus, Pencil, Trash2, Save, Settings, UserCheck, Users } from 'lucide-react';
 import { format, subDays } from 'date-fns';
 import { useAttendanceRecords, useAttendanceSettings, useWorkSites, useDeleteSite } from '@/hooks/useAttendance';
 import { AttendanceStatusBadge } from '@/components/attendance/AttendanceStatusBadge';
@@ -13,9 +13,21 @@ import { useDepartments } from '@/hooks/useDepartments';
 import { AddSiteModal } from '@/components/attendance/AddSiteModal';
 import { toast } from '@/lib/toast-api';
 import { modal } from '@/lib/modal-api';
+import { useDailyAttendanceSummary } from '@/hooks/useAttendanceReport';
+import { AttendanceReportCard } from '@/components/attendance/AttendanceReportCard';
+import { DailyAttendanceTab } from '@/components/attendance/DailyAttendanceTab';
+import { MonthlyReportTab } from '@/components/attendance/MonthlyReportTab';
+import { StatisticsTab } from '@/components/attendance/StatisticsTab';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const AttendanceManagement = () => {
   const today = format(new Date(), 'yyyy-MM-dd');
+  
+  // Tab state
+  const [activeTab, setActiveTab] = useState('records');
+  
+  // Fetch today's summary for KPI cards
+  const { data: todaySummary, isLoading: isSummaryLoading } = useDailyAttendanceSummary(today);
   
   // Filters state
   const [startDate, setStartDate] = useState(today);
@@ -133,15 +145,64 @@ const AttendanceManagement = () => {
       <div>
         <h1 className="text-3xl font-bold text-foreground">Attendance Management</h1>
         <p className="text-muted-foreground">
-          Track employee attendance and configure system settings
+          Track attendance, view reports, and configure system settings
         </p>
       </div>
 
-      <Tabs defaultValue="records" className="space-y-6">
-        <TabsList>
+      {/* Summary KPI Cards */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {isSummaryLoading ? (
+          Array.from({ length: 4 }).map((_, i) => (
+            <Card key={i}>
+              <CardContent className="p-6">
+                <Skeleton className="h-20 w-full" />
+              </CardContent>
+            </Card>
+          ))
+        ) : (
+          <>
+            <AttendanceReportCard
+              label="Present Today"
+              value={todaySummary?.present_count || 0}
+              icon={UserCheck}
+              variant="success"
+            />
+            <AttendanceReportCard
+              label="On Time"
+              value={todaySummary?.on_time_count || 0}
+              icon={Clock}
+              variant="info"
+            />
+            <AttendanceReportCard
+              label="Late"
+              value={todaySummary?.late_count || 0}
+              icon={AlertCircle}
+              variant="warning"
+            />
+            <AttendanceReportCard
+              label="Total Active Staff"
+              value={todaySummary?.total_staff || 0}
+              icon={Users}
+              variant="default"
+            />
+          </>
+        )}
+      </div>
+
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <TabsList className="grid w-full max-w-4xl grid-cols-5">
           <TabsTrigger value="records" className="gap-2">
             <Clock className="h-4 w-4" />
             Records
+          </TabsTrigger>
+          <TabsTrigger value="daily" className="gap-2">
+            Daily Report
+          </TabsTrigger>
+          <TabsTrigger value="monthly" className="gap-2">
+            Monthly Report
+          </TabsTrigger>
+          <TabsTrigger value="statistics" className="gap-2">
+            Statistics
           </TabsTrigger>
           <TabsTrigger value="settings" className="gap-2">
             <Settings className="h-4 w-4" />
@@ -364,6 +425,21 @@ const AttendanceManagement = () => {
           )}
         </CardContent>
       </Card>
+        </TabsContent>
+
+        {/* Daily Report Tab */}
+        <TabsContent value="daily" className="space-y-6">
+          <DailyAttendanceTab />
+        </TabsContent>
+
+        {/* Monthly Report Tab */}
+        <TabsContent value="monthly" className="space-y-6">
+          <MonthlyReportTab />
+        </TabsContent>
+
+        {/* Statistics Tab */}
+        <TabsContent value="statistics" className="space-y-6">
+          <StatisticsTab />
         </TabsContent>
 
         <TabsContent value="settings" className="space-y-6">
