@@ -151,6 +151,7 @@ export type Database = {
           position: string
           status: string
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           branch_id?: string | null
@@ -166,6 +167,7 @@ export type Database = {
           position: string
           status?: string
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           branch_id?: string | null
@@ -181,6 +183,7 @@ export type Database = {
           position?: string
           status?: string
           updated_at?: string
+          user_id?: string | null
         }
         Relationships: [
           {
