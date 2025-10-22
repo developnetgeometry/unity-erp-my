@@ -46,7 +46,9 @@ Deno.serve(async () => {
         continue;
       }
 
-      const shift = empShift.shifts;
+      const shift = Array.isArray(empShift.shifts) ? empShift.shifts[0] : empShift.shifts;
+      const employee = Array.isArray(empShift.employees) ? empShift.employees[0] : empShift.employees;
+      
       if (!shift?.start_time) {
         continue;
       }
@@ -99,7 +101,7 @@ Deno.serve(async () => {
 
       // Get company config to check if notifications are enabled
       const { data: config } = await supabase.rpc('get_attendance_config', {
-        p_company_id: empShift.employees.company_id
+        p_company_id: employee?.company_id
       });
 
       const notificationSettings = config?.[0]?.notification_settings || {};

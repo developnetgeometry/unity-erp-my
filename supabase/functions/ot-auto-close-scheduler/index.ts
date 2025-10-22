@@ -38,6 +38,8 @@ Deno.serve(async () => {
     let autoClosedCount = 0;
 
     for (const session of sessions || []) {
+      const workSite = Array.isArray(session.work_sites) ? session.work_sites[0] : session.work_sites;
+      
       // Calculate auto-close time (OT-in + 4 hours)
       const otInTime = new Date(session.ot_in_time);
       const autoCloseTime = new Date(otInTime.getTime() + 4 * 60 * 60 * 1000);
@@ -65,7 +67,7 @@ Deno.serve(async () => {
           employee_id: session.employee_id,
           notification_type: 'ot_auto_closed',
           title: 'OT Session Auto-Closed',
-          message: `Your OT session at ${session.work_sites?.site_name || 'work site'} was automatically closed after 4 hours. Total OT: 4.0 hours. Please verify with HR if this is incorrect.`,
+          message: `Your OT session at ${workSite?.site_name || 'work site'} was automatically closed after 4 hours. Total OT: 4.0 hours. Please verify with HR if this is incorrect.`,
           data: { 
             ot_session_id: session.id,
             auto_close_time: autoCloseTime.toISOString(),

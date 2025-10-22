@@ -42,13 +42,16 @@ Deno.serve(async () => {
     let autoClosedCount = 0;
 
     for (const record of records || []) {
-      if (!record.shifts?.end_time) {
+      const shift = Array.isArray(record.shifts) ? record.shifts[0] : record.shifts;
+      const employee = Array.isArray(record.employees) ? record.employees[0] : record.employees;
+      
+      if (!shift?.end_time) {
         console.log(`Skipping record ${record.id} - no shift end time`);
         continue;
       }
 
       // Calculate when shift ended (shift end time + 30 minutes grace)
-      const shiftEndTime = new Date(`${today}T${record.shifts.end_time}`);
+      const shiftEndTime = new Date(`${today}T${shift.end_time}`);
       const graceEndTime = new Date(shiftEndTime.getTime() + 30 * 60 * 1000); // +30 minutes
 
       if (now < graceEndTime) {
@@ -58,7 +61,7 @@ Deno.serve(async () => {
 
       // Get company config
       const { data: config } = await supabase.rpc('get_attendance_config', {
-        p_company_id: record.employees.company_id
+        p_company_id: employee?.company_id
       });
 
       const correctionWindowHours = config?.[0]?.correction_window_hours || 24;

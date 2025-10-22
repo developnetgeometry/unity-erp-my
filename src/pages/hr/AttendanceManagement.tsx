@@ -1,178 +1,182 @@
-import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Clock, CheckCircle, XCircle, AlertCircle, RefreshCw, MapPin } from 'lucide-react';
-import { toast } from '@/lib/toast-api';
-import { format } from 'date-fns';
-
-interface AttendanceSummary {
-  present_count: number;
-  late_count: number;
-  absent_count: number;
-  average_hours: number;
-  total_employees: number;
-}
-
-interface AttendanceRecord {
-  id: string;
-  employee_id: string;
-  clock_in_time: string | null;
-  clock_out_time: string | null;
-  status: string;
-  hours_worked: number;
-  overtime_hours: number;
-  employees: {
-    full_name: string;
-    position: string;
-  };
-  work_sites: {
-    site_name: string;
-  } | null;
-}
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Clock, CheckCircle, XCircle, AlertCircle, RefreshCw, MapPin, AlertTriangle, Filter, Search } from 'lucide-react';
+import { format, subDays } from 'date-fns';
+import { useAttendanceRecords } from '@/hooks/useAttendance';
+import { AttendanceStatusBadge } from '@/components/attendance/AttendanceStatusBadge';
+import { useDepartments } from '@/hooks/useDepartments';
 
 const AttendanceManagement = () => {
-  const [summary, setSummary] = useState<AttendanceSummary | null>(null);
-  const [records, setRecords] = useState<AttendanceRecord[]>([]);
-  const [loading, setLoading] = useState(true);
+  const today = format(new Date(), 'yyyy-MM-dd');
+  
+  // Filters state
+  const [startDate, setStartDate] = useState(today);
+  const [endDate, setEndDate] = useState(today);
+  const [statusFilter, setStatusFilter] = useState<string>('');
+  const [departmentFilter, setDepartmentFilter] = useState<string>('');
+  const [searchQuery, setSearchQuery] = useState('');
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+  // Fetch data with filters
+  const { data: records = [], isLoading, refetch } = useAttendanceRecords({
+    startDate,
+    endDate,
+    status: statusFilter || undefined,
+    department: departmentFilter || undefined,
+    search: searchQuery || undefined,
+  });
 
-  const fetchData = async () => {
-    setLoading(true);
-    try {
-      // Fetch today's attendance records
-      const today = new Date().toISOString().split('T')[0];
-      const { data: recordsData, error: recordsError } = await supabase
-        .from('attendance_records')
-        .select(`
-          *,
-          employees!inner(full_name, position, company_id),
-          work_sites(site_name)
-        `)
-        .eq('attendance_date', today)
-        .order('clock_in_time', { ascending: false, nullsFirst: false });
+  const { data: departments = [] } = useDepartments();
 
-      if (recordsError) {
-        console.error('Records error:', recordsError);
-        toast.error('Failed to load attendance records');
-      } else {
-        setRecords(recordsData || []);
-        
-        // Calculate summary from records
-        const presentStatuses = ['on_time', 'late', 'half_day'];
-        const presentCount = recordsData?.filter(r => presentStatuses.includes(r.status)).length || 0;
-        const lateCount = recordsData?.filter(r => r.status === 'late').length || 0;
-        const absentCount = recordsData?.filter(r => r.status === 'absent').length || 0;
-        const totalHours = recordsData?.reduce((sum, r) => sum + (r.hours_worked || 0), 0) || 0;
-        const avgHours = presentCount > 0 ? totalHours / presentCount : 0;
-        
-        setSummary({
-          present_count: presentCount,
-          late_count: lateCount,
-          absent_count: absentCount,
-          average_hours: avgHours,
-          total_employees: recordsData?.length || 0,
-        });
-      }
-    } catch (error: any) {
-      console.error('Error fetching data:', error);
-      toast.error('Failed to load attendance data');
-    } finally {
-      setLoading(false);
-    }
+  // Calculate summary from records
+  const summary = {
+    present_count: records.filter(r => ['on_time', 'late', 'half_day'].includes(r.status)).length,
+    late_count: records.filter(r => r.status === 'late').length,
+    absent_count: records.filter(r => r.status === 'absent').length,
+    provisional_count: records.filter(r => r.is_provisional).length,
+    average_hours: records.length > 0
+      ? records.reduce((sum, r) => sum + (r.hours_worked || 0), 0) / records.length
+      : 0,
+    total_employees: records.length,
   };
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'on_time':
-        return (
-          <Badge className="bg-green-500">
-            <CheckCircle className="h-3 w-3 mr-1" />
-            On Time
-          </Badge>
-        );
-      case 'late':
-        return (
-          <Badge className="bg-yellow-500">
-            <AlertCircle className="h-3 w-3 mr-1" />
-            Late
-          </Badge>
-        );
-      case 'half_day':
-        return (
-          <Badge className="bg-orange-500">
-            <AlertCircle className="h-3 w-3 mr-1" />
-            Half Day
-          </Badge>
-        );
-      case 'absent':
-        return (
-          <Badge className="bg-red-500">
-            <XCircle className="h-3 w-3 mr-1" />
-            Absent
-          </Badge>
-        );
-      case 'leave':
-        return (
-          <Badge className="bg-blue-500">
-            <Clock className="h-3 w-3 mr-1" />
-            Leave
-          </Badge>
-        );
-      case 'holiday':
-        return (
-          <Badge className="bg-purple-500">
-            <Clock className="h-3 w-3 mr-1" />
-            Holiday
-          </Badge>
-        );
-      default:
-        return <Badge variant="outline">{status}</Badge>;
+  const handleQuickFilter = (days: number) => {
+    if (days === 0) {
+      setStartDate(today);
+      setEndDate(today);
+    } else {
+      setStartDate(format(subDays(new Date(), days), 'yyyy-MM-dd'));
+      setEndDate(today);
     }
   };
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-foreground">Attendance Management</h1>
           <p className="text-muted-foreground">
-            Track and monitor employee attendance for {format(new Date(), 'MMMM d, yyyy')}
+            Track and monitor employee attendance
           </p>
         </div>
-        <Button onClick={fetchData} disabled={loading} variant="outline">
-          <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+        <Button onClick={() => refetch()} disabled={isLoading} variant="outline">
+          <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
           Refresh
         </Button>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-4">
+      {/* Filters Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Filter className="h-5 w-5" />
+            Filters
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+            {/* Quick Date Filters */}
+            <div className="lg:col-span-2 flex gap-2">
+              <Button
+                variant={startDate === today && endDate === today ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => handleQuickFilter(0)}
+              >
+                Today
+              </Button>
+              <Button
+                variant={startDate === format(subDays(new Date(), 7), 'yyyy-MM-dd') ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => handleQuickFilter(7)}
+              >
+                7 Days
+              </Button>
+              <Button
+                variant={startDate === format(subDays(new Date(), 30), 'yyyy-MM-dd') ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => handleQuickFilter(30)}
+              >
+                30 Days
+              </Button>
+            </div>
+
+            {/* Status Filter */}
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger>
+                <SelectValue placeholder="All Statuses" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">All Statuses</SelectItem>
+                <SelectItem value="on_time">On Time</SelectItem>
+                <SelectItem value="late">Late</SelectItem>
+                <SelectItem value="absent">Absent</SelectItem>
+                <SelectItem value="half_day">Half Day</SelectItem>
+                <SelectItem value="leave">On Leave</SelectItem>
+              </SelectContent>
+            </Select>
+
+            {/* Department Filter */}
+            <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
+              <SelectTrigger>
+                <SelectValue placeholder="All Departments" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">All Departments</SelectItem>
+                {departments.map((dept) => (
+                  <SelectItem key={dept.id} value={dept.id}>
+                    {dept.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {/* Search */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search employees..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Summary Cards */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
         {[
           {
-            title: 'Present Today',
-            value: summary?.present_count?.toString() || '0',
+            title: 'Present',
+            value: summary.present_count.toString(),
             icon: CheckCircle,
             color: 'text-green-500',
           },
           {
             title: 'Late Arrivals',
-            value: summary?.late_count?.toString() || '0',
+            value: summary.late_count.toString(),
             icon: AlertCircle,
             color: 'text-yellow-500',
           },
           {
             title: 'Absent',
-            value: summary?.absent_count?.toString() || '0',
+            value: summary.absent_count.toString(),
             icon: XCircle,
             color: 'text-red-500',
           },
           {
+            title: 'Provisional',
+            value: summary.provisional_count.toString(),
+            icon: AlertTriangle,
+            color: 'text-amber-500',
+          },
+          {
             title: 'Avg. Hours',
-            value: summary?.average_hours?.toFixed(1) || '0.0',
+            value: summary.average_hours.toFixed(1),
             icon: Clock,
             color: 'text-blue-500',
           },
@@ -191,16 +195,17 @@ const AttendanceManagement = () => {
         ))}
       </div>
 
+      {/* Records Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Today's Attendance ({records.length} employees)</CardTitle>
+          <CardTitle>Attendance Records ({records.length} employees)</CardTitle>
         </CardHeader>
         <CardContent>
-          {loading ? (
+          {isLoading ? (
             <div className="text-center py-8 text-muted-foreground">Loading...</div>
           ) : records.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
-              No attendance records for today yet.
+              No attendance records found for the selected filters.
             </div>
           ) : (
             <div className="space-y-3">
@@ -217,6 +222,8 @@ const AttendanceManagement = () => {
                       </p>
                       <div className="flex items-center gap-3 text-sm text-muted-foreground mt-1">
                         <span>{record.employees.position}</span>
+                        <span>•</span>
+                        <span>{format(new Date(record.attendance_date), 'MMM d')}</span>
                         {record.work_sites && (
                           <>
                             <span>•</span>
@@ -255,7 +262,12 @@ const AttendanceManagement = () => {
                       </div>
                     )}
 
-                    {getStatusBadge(record.status)}
+                    <AttendanceStatusBadge
+                      status={record.status as any}
+                      isProvisional={record.is_provisional}
+                      isLocked={record.locked_for_payroll}
+                      size="md"
+                    />
                   </div>
                 </div>
               ))}
