@@ -14,6 +14,160 @@ export type Database = {
   }
   public: {
     Tables: {
+      attendance_corrections: {
+        Row: {
+          attachment_url: string | null
+          attendance_record_id: string | null
+          correction_type: Database["public"]["Enums"]["correction_type"]
+          created_at: string
+          employee_id: string
+          id: string
+          reason: string
+          requested_clock_in: string | null
+          requested_clock_out: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          reviewer_notes: string | null
+          status: Database["public"]["Enums"]["correction_status"]
+          updated_at: string
+        }
+        Insert: {
+          attachment_url?: string | null
+          attendance_record_id?: string | null
+          correction_type: Database["public"]["Enums"]["correction_type"]
+          created_at?: string
+          employee_id: string
+          id?: string
+          reason: string
+          requested_clock_in?: string | null
+          requested_clock_out?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          reviewer_notes?: string | null
+          status?: Database["public"]["Enums"]["correction_status"]
+          updated_at?: string
+        }
+        Update: {
+          attachment_url?: string | null
+          attendance_record_id?: string | null
+          correction_type?: Database["public"]["Enums"]["correction_type"]
+          created_at?: string
+          employee_id?: string
+          id?: string
+          reason?: string
+          requested_clock_in?: string | null
+          requested_clock_out?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          reviewer_notes?: string | null
+          status?: Database["public"]["Enums"]["correction_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attendance_corrections_attendance_record_id_fkey"
+            columns: ["attendance_record_id"]
+            isOneToOne: false
+            referencedRelation: "attendance_records"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_corrections_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      attendance_records: {
+        Row: {
+          adjusted_by: string | null
+          attendance_date: string
+          clock_in_latitude: number | null
+          clock_in_longitude: number | null
+          clock_in_time: string | null
+          clock_out_latitude: number | null
+          clock_out_longitude: number | null
+          clock_out_time: string | null
+          created_at: string
+          employee_id: string
+          hours_worked: number | null
+          id: string
+          is_manually_adjusted: boolean
+          notes: string | null
+          overtime_hours: number | null
+          shift_id: string | null
+          site_id: string | null
+          status: Database["public"]["Enums"]["attendance_status"]
+          updated_at: string
+        }
+        Insert: {
+          adjusted_by?: string | null
+          attendance_date: string
+          clock_in_latitude?: number | null
+          clock_in_longitude?: number | null
+          clock_in_time?: string | null
+          clock_out_latitude?: number | null
+          clock_out_longitude?: number | null
+          clock_out_time?: string | null
+          created_at?: string
+          employee_id: string
+          hours_worked?: number | null
+          id?: string
+          is_manually_adjusted?: boolean
+          notes?: string | null
+          overtime_hours?: number | null
+          shift_id?: string | null
+          site_id?: string | null
+          status?: Database["public"]["Enums"]["attendance_status"]
+          updated_at?: string
+        }
+        Update: {
+          adjusted_by?: string | null
+          attendance_date?: string
+          clock_in_latitude?: number | null
+          clock_in_longitude?: number | null
+          clock_in_time?: string | null
+          clock_out_latitude?: number | null
+          clock_out_longitude?: number | null
+          clock_out_time?: string | null
+          created_at?: string
+          employee_id?: string
+          hours_worked?: number | null
+          id?: string
+          is_manually_adjusted?: boolean
+          notes?: string | null
+          overtime_hours?: number | null
+          shift_id?: string | null
+          site_id?: string | null
+          status?: Database["public"]["Enums"]["attendance_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attendance_records_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_records_shift_id_fkey"
+            columns: ["shift_id"]
+            isOneToOne: false
+            referencedRelation: "shifts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_records_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "work_sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       branches: {
         Row: {
           address: string | null
@@ -132,6 +286,54 @@ export type Database = {
             columns: ["manager_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employee_shifts: {
+        Row: {
+          created_at: string
+          effective_from: string
+          effective_until: string | null
+          employee_id: string
+          id: string
+          shift_id: string
+          updated_at: string
+          work_days: Json
+        }
+        Insert: {
+          created_at?: string
+          effective_from: string
+          effective_until?: string | null
+          employee_id: string
+          id?: string
+          shift_id: string
+          updated_at?: string
+          work_days?: Json
+        }
+        Update: {
+          created_at?: string
+          effective_from?: string
+          effective_until?: string | null
+          employee_id?: string
+          id?: string
+          shift_id?: string
+          updated_at?: string
+          work_days?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_shifts_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_shifts_shift_id_fkey"
+            columns: ["shift_id"]
+            isOneToOne: false
+            referencedRelation: "shifts"
             referencedColumns: ["id"]
           },
         ]
@@ -259,6 +461,88 @@ export type Database = {
           },
         ]
       }
+      public_holidays: {
+        Row: {
+          company_id: string
+          created_at: string
+          holiday_date: string
+          holiday_name: string
+          id: string
+          is_recurring: boolean
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          holiday_date: string
+          holiday_name: string
+          id?: string
+          is_recurring?: boolean
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          holiday_date?: string
+          holiday_name?: string
+          id?: string
+          is_recurring?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "public_holidays_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shifts: {
+        Row: {
+          company_id: string
+          created_at: string
+          end_time: string
+          grace_period_minutes: number
+          id: string
+          is_active: boolean
+          lunch_break_minutes: number
+          shift_name: string
+          start_time: string
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          end_time: string
+          grace_period_minutes?: number
+          id?: string
+          is_active?: boolean
+          lunch_break_minutes?: number
+          shift_name: string
+          start_time: string
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          end_time?: string
+          grace_period_minutes?: number
+          id?: string
+          is_active?: boolean
+          lunch_break_minutes?: number
+          shift_name?: string
+          start_time?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shifts_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -280,11 +564,85 @@ export type Database = {
         }
         Relationships: []
       }
+      work_sites: {
+        Row: {
+          address: string | null
+          company_id: string
+          created_at: string
+          created_by: string | null
+          id: string
+          is_active: boolean
+          latitude: number
+          longitude: number
+          radius_meters: number
+          site_name: string
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          company_id: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          latitude: number
+          longitude: number
+          radius_meters?: number
+          site_name: string
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          latitude?: number
+          longitude?: number
+          radius_meters?: number
+          site_name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "work_sites_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      calculate_distance: {
+        Args: { lat1: number; lat2: number; lon1: number; lon2: number }
+        Returns: number
+      }
+      calculate_hours_worked: {
+        Args: {
+          p_clock_in: string
+          p_clock_out: string
+          p_lunch_break_minutes?: number
+        }
+        Returns: number
+      }
+      calculate_overtime_hours: {
+        Args: { p_clock_out_time: string; p_shift_end_time: string }
+        Returns: number
+      }
+      determine_attendance_status: {
+        Args: {
+          p_clock_in_time: string
+          p_grace_period_minutes: number
+          p_shift_start_time: string
+        }
+        Returns: Database["public"]["Enums"]["attendance_status"]
+      }
       get_user_company_id: {
         Args: { _user_id: string }
         Returns: string
@@ -296,6 +654,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      validate_geofence: {
+        Args: { p_latitude: number; p_longitude: number; p_site_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       app_role:
@@ -304,6 +666,15 @@ export type Database = {
         | "hr_manager"
         | "finance_manager"
         | "employee"
+      attendance_status:
+        | "on_time"
+        | "late"
+        | "half_day"
+        | "absent"
+        | "leave"
+        | "holiday"
+      correction_status: "pending" | "approved" | "rejected"
+      correction_type: "clock_in" | "clock_out" | "both" | "full_record"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -438,6 +809,16 @@ export const Constants = {
         "finance_manager",
         "employee",
       ],
+      attendance_status: [
+        "on_time",
+        "late",
+        "half_day",
+        "absent",
+        "leave",
+        "holiday",
+      ],
+      correction_status: ["pending", "approved", "rejected"],
+      correction_type: ["clock_in", "clock_out", "both", "full_record"],
     },
   },
 } as const
