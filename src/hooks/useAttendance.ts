@@ -18,6 +18,11 @@ export interface AttendanceRecord {
     full_name: string;
     position: string;
     employee_number: string;
+    department_id: string | null;
+    departments: {
+      id: string;
+      name: string;
+    } | null;
   };
   work_sites: {
     site_name: string;

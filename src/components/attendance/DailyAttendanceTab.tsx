@@ -35,7 +35,8 @@ export const DailyAttendanceTab = () => {
   const filteredRecords = records?.filter(record => {
     const matchesSearch = searchQuery === '' ||
       record.employees?.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      record.employees?.employee_number?.toLowerCase().includes(searchQuery.toLowerCase());
+      record.employees?.employee_number?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      record.employees?.departments?.name?.toLowerCase().includes(searchQuery.toLowerCase());
 
     const matchesStatus = statusFilter === 'all' || record.status === statusFilter;
 
@@ -139,7 +140,7 @@ export const DailyAttendanceTab = () => {
             <div className="relative flex-1">
               <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search by name, IC, or phone..."
+                placeholder="Search by name, department, IC, or phone..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-8"
@@ -179,6 +180,7 @@ export const DailyAttendanceTab = () => {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Name</TableHead>
+                    <TableHead>Department</TableHead>
                     <TableHead>IC Number</TableHead>
                     <TableHead>Phone</TableHead>
                     <TableHead>Status</TableHead>
@@ -192,6 +194,9 @@ export const DailyAttendanceTab = () => {
                     <TableRow key={record.id}>
                       <TableCell className="font-medium">
                         {record.employees?.full_name || 'N/A'}
+                      </TableCell>
+                      <TableCell>
+                        {record.employees?.departments?.name || 'Unassigned'}
                       </TableCell>
                       <TableCell>N/A</TableCell>
                       <TableCell>N/A</TableCell>
