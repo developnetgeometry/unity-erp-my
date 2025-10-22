@@ -6,7 +6,7 @@ interface AttendanceReportCardProps {
   label: string;
   value: string | number;
   icon: LucideIcon;
-  variant?: 'default' | 'success' | 'warning' | 'danger' | 'info';
+  variant?: 'default' | 'purple' | 'success' | 'warning' | 'danger' | 'info';
   subtitle?: string;
 }
 
@@ -19,6 +19,7 @@ export const AttendanceReportCard = ({
 }: AttendanceReportCardProps) => {
   const variantClasses = {
     default: 'border-border',
+    purple: 'border-purple-500/20 bg-purple-50/50 dark:bg-purple-950/20',
     success: 'border-green-500/20 bg-green-50/50 dark:bg-green-950/20',
     warning: 'border-orange-500/20 bg-orange-50/50 dark:bg-orange-950/20',
     danger: 'border-red-500/20 bg-red-50/50 dark:bg-red-950/20',
@@ -27,6 +28,7 @@ export const AttendanceReportCard = ({
 
   const iconClasses = {
     default: 'text-muted-foreground',
+    purple: 'text-[#5F26B4] dark:text-purple-400',
     success: 'text-green-600 dark:text-green-400',
     warning: 'text-orange-600 dark:text-orange-400',
     danger: 'text-red-600 dark:text-red-400',

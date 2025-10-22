@@ -25,6 +25,14 @@ export const colors = {
     foreground: 'hsl(0 0% 100%)',
   },
   
+  // Purple Accent (#5F26B4) - Used for calendar highlights and special features
+  purple: {
+    DEFAULT: 'hsl(265 76% 43%)', // #5F26B4
+    hover: 'hsl(265 76% 50%)',
+    light: 'hsl(265 76% 95%)',
+    foreground: 'hsl(0 0% 100%)',
+  },
+  
   // Warning Amber (#F59E0B)
   warning: {
     DEFAULT: 'hsl(38 92% 50%)',

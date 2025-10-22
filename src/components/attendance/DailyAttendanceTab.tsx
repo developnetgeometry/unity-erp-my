@@ -1,19 +1,16 @@
 import { useState } from 'react';
 import { format } from 'date-fns';
-import { Calendar } from '@/components/ui/calendar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Button } from '@/components/ui/button';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { CalendarIcon, Search, Users, UserCheck, UserX, TrendingUp } from 'lucide-react';
+import { Search, Users, UserCheck, UserX, TrendingUp } from 'lucide-react';
 import { useAttendanceRecords } from '@/hooks/useAttendance';
 import { AttendanceReportCard } from './AttendanceReportCard';
 import { ExportButton } from './ExportButton';
 import { Skeleton } from '@/components/ui/skeleton';
-import { cn } from '@/lib/utils';
+import { SidebarCalendar } from './SidebarCalendar';
 
 export const DailyAttendanceTab = () => {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
@@ -51,7 +48,7 @@ export const DailyAttendanceTab = () => {
       late: { variant: 'secondary', className: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200' },
       absent: { variant: 'destructive', className: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' },
       half_day: { variant: 'secondary', className: 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200' },
-      leave: { variant: 'outline', className: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' },
+      leave: { variant: 'outline', className: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200' },
       holiday: { variant: 'outline', className: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200' },
     };
 
@@ -64,33 +61,27 @@ export const DailyAttendanceTab = () => {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Date Selector */}
-      <div className="flex items-center gap-4">
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button variant="outline" className="justify-start text-left font-normal">
-              <CalendarIcon className="mr-2 h-4 w-4" />
-              {format(selectedDate, 'PPP')}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="start">
-            <Calendar
-              mode="single"
-              selected={selectedDate}
-              onSelect={(date) => date && setSelectedDate(date)}
-              initialFocus
-              className="pointer-events-auto"
+    <div className="flex flex-col lg:flex-row gap-6 h-full">
+      {/* Left Sidebar - Calendar */}
+      <div className="w-full lg:w-[30%] lg:flex-shrink-0">
+        <Card className="h-full lg:sticky lg:top-4">
+          <CardContent className="p-4 h-full flex flex-col">
+            <h3 className="text-sm font-medium text-muted-foreground mb-4">
+              Select Date
+            </h3>
+            <SidebarCalendar
+              selectedDate={selectedDate}
+              onDateSelect={setSelectedDate}
+              className="flex-1"
             />
-          </PopoverContent>
-        </Popover>
-        <Button variant="outline" onClick={() => setSelectedDate(new Date())}>
-          Today
-        </Button>
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Summary Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      {/* Main Content Area */}
+      <div className="flex-1 space-y-6 overflow-auto">
+        {/* Summary Cards */}
+        <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
         {isLoading ? (
           Array.from({ length: 4 }).map((_, i) => (
             <Card key={i}>
@@ -105,7 +96,7 @@ export const DailyAttendanceTab = () => {
               label="Total Staff"
               value={totalStaff}
               icon={Users}
-              variant="default"
+              variant="purple"
             />
             <AttendanceReportCard
               label="Present"
@@ -129,10 +120,10 @@ export const DailyAttendanceTab = () => {
             />
           </>
         )}
-      </div>
+        </div>
 
-      {/* Search and Filters */}
-      <Card>
+        {/* Search and Filters */}
+        <Card>
         <CardHeader>
           <div className="flex items-center justify-between gap-4">
             <CardTitle>Attendance Records</CardTitle>
@@ -144,11 +135,11 @@ export const DailyAttendanceTab = () => {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="mb-4 flex items-center gap-4">
-              <div className="relative flex-1">
+          <div className="mb-4 flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
+            <div className="relative flex-1">
               <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search by name or employee number..."
+                placeholder="Search by name, IC, or phone..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-8"
@@ -188,12 +179,12 @@ export const DailyAttendanceTab = () => {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Name</TableHead>
-                    <TableHead>Employee Number</TableHead>
-                    <TableHead>Position</TableHead>
+                    <TableHead>IC Number</TableHead>
+                    <TableHead>Phone</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Check In</TableHead>
                     <TableHead>Check Out</TableHead>
-                    <TableHead className="text-right">Hours</TableHead>
+                    <TableHead>Site</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -202,8 +193,8 @@ export const DailyAttendanceTab = () => {
                       <TableCell className="font-medium">
                         {record.employees?.full_name || 'N/A'}
                       </TableCell>
-                      <TableCell>{record.employees?.employee_number || 'N/A'}</TableCell>
-                      <TableCell>{record.employees?.position || 'N/A'}</TableCell>
+                      <TableCell>N/A</TableCell>
+                      <TableCell>N/A</TableCell>
                       <TableCell>{getStatusBadge(record.status)}</TableCell>
                       <TableCell>
                         {record.clock_in_time
@@ -215,9 +206,7 @@ export const DailyAttendanceTab = () => {
                           ? format(new Date(record.clock_out_time), 'HH:mm')
                           : '-'}
                       </TableCell>
-                      <TableCell className="text-right">
-                        {record.hours_worked ? `${record.hours_worked}h` : '-'}
-                      </TableCell>
+                      <TableCell>{record.work_sites?.site_name || 'Office'}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -225,7 +214,8 @@ export const DailyAttendanceTab = () => {
             </div>
           )}
         </CardContent>
-      </Card>
+        </Card>
+      </div>
     </div>
   );
 };
