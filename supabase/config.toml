@@ -6,6 +6,9 @@ verify_jwt = false
 [functions.hr-departments]
 verify_jwt = true
 
+[functions.hr-attendance]
+verify_jwt = true
+
 [functions.register-company]
 verify_jwt = false
 

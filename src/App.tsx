@@ -18,6 +18,7 @@ import HRDashboard from "./pages/hr/Dashboard";
 import EmployeeManagement from "./pages/hr/EmployeeManagement";
 import DepartmentManagement from "./pages/hr/DepartmentManagement";
 import AttendanceManagement from "./pages/hr/AttendanceManagement";
+import MyAttendance from "./pages/attendance/MyAttendance";
 import LeaveManagement from "./pages/hr/LeaveManagement";
 import PayrollManagement from "./pages/hr/PayrollManagement";
 import ComplianceDashboard from "./pages/hr/ComplianceDashboard";
@@ -61,6 +62,7 @@ const App = () => (
             <Route path="/hr/employee-management" element={<EmployeeManagement />} />
             <Route path="/hr/department-management" element={<DepartmentManagement />} />
             <Route path="/hr/attendance-management" element={<AttendanceManagement />} />
+            <Route path="/attendance/my-attendance" element={<MyAttendance />} />
             <Route path="/hr/leave-management" element={<LeaveManagement />} />
             <Route path="/hr/payroll-management" element={<PayrollManagement />} />
             <Route path="/hr/compliance-dashboard" element={<ComplianceDashboard />} />
