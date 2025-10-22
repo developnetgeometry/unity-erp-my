@@ -344,7 +344,7 @@ export type Database = {
           company_id: string
           created_at: string
           department_id: string | null
-          email: string
+          email: string | null
           employee_number: string
           full_name: string
           ic_number: string | null
@@ -361,7 +361,7 @@ export type Database = {
           company_id: string
           created_at?: string
           department_id?: string | null
-          email: string
+          email?: string | null
           employee_number: string
           full_name: string
           ic_number?: string | null
@@ -378,7 +378,7 @@ export type Database = {
           company_id?: string
           created_at?: string
           department_id?: string | null
-          email?: string
+          email?: string | null
           employee_number?: string
           full_name?: string
           ic_number?: string | null
