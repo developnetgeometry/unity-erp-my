@@ -84,22 +84,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setSession(initialSession);
         setUser(initialSession?.user ?? null);
 
-        // Auto-activate user if pending verification
-        if (initialSession?.user) {
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('status')
-            .eq('id', initialSession.user.id)
-            .single();
-
-          if (profile?.status === 'pending_verification') {
-            console.log('AuthContext - Auto-activating user...');
-            await supabase
-              .from('profiles')
-              .update({ status: 'active', email_verified: true })
-              .eq('id', initialSession.user.id);
-          }
-        }
+        // User activation now handled by database trigger during registration
       } catch (error) {
         console.error('AuthContext - Session initialization error:', error);
         setSession(null);
