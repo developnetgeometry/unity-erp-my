@@ -60,7 +60,7 @@ serve(async (req) => {
         query = query.or(`full_name.ilike.%${searchQuery}%,email.ilike.%${searchQuery}%`);
       }
       if (department) {
-        query = query.eq('department', department);
+        query = query.eq('department_id', department);
       }
       if (status) {
         query = query.eq('status', status);
@@ -91,9 +91,9 @@ serve(async (req) => {
 
       const body = await req.json();
 
-      if (!body.full_name || !body.position || !body.department || !body.join_date) {
+      if (!body.full_name || !body.position || !body.join_date) {
         return new Response(JSON.stringify({ 
-          error: 'Missing required fields: full_name, position, department, join_date' 
+          error: 'Missing required fields: full_name, position, join_date' 
         }), { 
           status: 400, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -124,7 +124,7 @@ serve(async (req) => {
           email: body.email || null,
           phone: body.phone || null,
           position: body.position,
-          department: body.department,
+          department_id: body.department_id || null,
           branch_id: body.branch_id || null,
           join_date: body.join_date,
           status: body.status || 'Active',
@@ -168,7 +168,7 @@ serve(async (req) => {
           email: body.email,
           phone: body.phone,
           position: body.position,
-          department: body.department,
+          department_id: body.department_id,
           branch_id: body.branch_id,
           join_date: body.join_date,
           status: body.status,
