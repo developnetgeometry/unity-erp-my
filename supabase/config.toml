@@ -14,3 +14,12 @@ verify_jwt = false
 
 [functions.send-verification-email]
 verify_jwt = false
+
+[functions.auto-clockout-scheduler]
+verify_jwt = false
+
+[functions.ot-auto-close-scheduler]
+verify_jwt = false
+
+[functions.late-arrival-notifier]
+verify_jwt = false
