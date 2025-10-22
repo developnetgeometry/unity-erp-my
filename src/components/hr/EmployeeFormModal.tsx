@@ -35,7 +35,7 @@ const employeeSchema = z.object({
   email: z.string().email('Invalid email').optional().or(z.literal('')),
   phone: z.string().optional(),
   position: z.string().min(1, 'Position is required'),
-  department: z.string().min(1, 'Department is required'),
+  department_id: z.string().optional(),
   join_date: z.string().min(1, 'Join date is required'),
   status: z.enum(['Active', 'On Leave', 'Terminated', 'Probation']).optional(),
 });
@@ -67,7 +67,7 @@ export const EmployeeFormModal = ({
       email: '',
       phone: '',
       position: '',
-      department: '',
+      department_id: '',
       join_date: new Date().toISOString().split('T')[0],
       status: 'Active',
     },
@@ -81,7 +81,7 @@ export const EmployeeFormModal = ({
         email: employee.email || '',
         phone: employee.phone || '',
         position: employee.position,
-        department: employee.department,
+        department_id: employee.department_id || '',
         join_date: employee.join_date,
         status: employee.status,
       });
@@ -92,7 +92,7 @@ export const EmployeeFormModal = ({
         email: '',
         phone: '',
         position: '',
-        department: '',
+        department_id: '',
         join_date: new Date().toISOString().split('T')[0],
         status: 'Active',
       });
@@ -192,10 +192,10 @@ export const EmployeeFormModal = ({
 
               <FormField
                 control={form.control}
-                name="department"
+                name="department_id"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Department *</FormLabel>
+                    <FormLabel>Department</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
@@ -204,7 +204,7 @@ export const EmployeeFormModal = ({
                       </FormControl>
                       <SelectContent>
                         {departments.map((dept) => (
-                          <SelectItem key={dept.id} value={dept.name}>
+                          <SelectItem key={dept.id} value={dept.id}>
                             {dept.name}
                           </SelectItem>
                         ))}

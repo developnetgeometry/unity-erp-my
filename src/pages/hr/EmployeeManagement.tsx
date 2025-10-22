@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -38,6 +38,7 @@ import {
   useDeleteEmployee,
   Employee,
 } from '@/hooks/useEmployees';
+import { useDepartments } from '@/hooks/useDepartments';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const EmployeeManagement = () => {
@@ -47,9 +48,24 @@ const EmployeeManagement = () => {
   const [deletingEmployee, setDeletingEmployee] = useState<Employee | null>(null);
 
   const { data: employees, isLoading } = useEmployees({ search: searchQuery });
+  const { data: departments = [] } = useDepartments();
   const createEmployee = useCreateEmployee();
   const updateEmployee = useUpdateEmployee();
   const deleteEmployee = useDeleteEmployee();
+
+  // Create department lookup map
+  const departmentMap = useMemo(() => {
+    const map = new Map<string, string>();
+    departments.forEach(dept => {
+      map.set(dept.id, dept.name);
+    });
+    return map;
+  }, [departments]);
+
+  const getDepartmentName = (departmentId: string | null) => {
+    if (!departmentId) return 'N/A';
+    return departmentMap.get(departmentId) || 'Unknown';
+  };
 
   const handleAddEmployee = (data: any) => {
     createEmployee.mutate(data, {
@@ -84,7 +100,7 @@ const EmployeeManagement = () => {
       emp.employee_number,
       emp.full_name,
       emp.position,
-      emp.department,
+      getDepartmentName(emp.department_id),
       emp.email || '',
       emp.phone || '',
       emp.status,
@@ -202,7 +218,7 @@ const EmployeeManagement = () => {
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-muted-foreground">Department</span>
-                    <Badge variant="secondary">{employee.department}</Badge>
+                    <Badge variant="secondary">{getDepartmentName(employee.department_id)}</Badge>
                   </div>
                   {employee.email && (
                     <div className="flex items-center gap-2 text-sm">

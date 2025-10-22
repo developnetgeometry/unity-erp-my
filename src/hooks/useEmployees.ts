@@ -11,7 +11,7 @@ export interface Employee {
   email: string | null;
   phone: string | null;
   position: string;
-  department: string;
+  department_id: string | null;
   branch_id: string | null;
   join_date: string;
   status: 'Active' | 'On Leave' | 'Terminated' | 'Probation';
@@ -25,7 +25,7 @@ export interface EmployeeFormData {
   email?: string;
   phone?: string;
   position: string;
-  department: string;
+  department_id?: string;
   branch_id?: string;
   join_date: string;
   status?: string;
