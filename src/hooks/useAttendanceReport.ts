@@ -93,9 +93,9 @@ export const useMonthlyAttendanceSummary = (month: string, year: string) => {
             ic_number,
             phone,
             status,
-            employee_sites!inner(
-              work_sites(site_name)
-            )
+        employee_sites(
+          work_sites(site_name)
+        )
           )
         `)
         .gte('attendance_date', startDate)
