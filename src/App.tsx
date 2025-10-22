@@ -19,6 +19,10 @@ import EmployeeManagement from "./pages/hr/EmployeeManagement";
 import DepartmentManagement from "./pages/hr/DepartmentManagement";
 import AttendanceManagement from "./pages/hr/AttendanceManagement";
 import MyAttendance from "./pages/attendance/MyAttendance";
+import OvertimeTracking from "./pages/attendance/OvertimeTracking";
+import CorrectionRequests from "./pages/attendance/CorrectionRequests";
+import OvertimeManagement from "./pages/hr/OvertimeManagement";
+import CorrectionRequestsManagement from "./pages/hr/CorrectionRequestsManagement";
 import LeaveManagement from "./pages/hr/LeaveManagement";
 import PayrollManagement from "./pages/hr/PayrollManagement";
 import ComplianceDashboard from "./pages/hr/ComplianceDashboard";
@@ -63,6 +67,10 @@ const App = () => (
             <Route path="/hr/department-management" element={<DepartmentManagement />} />
             <Route path="/hr/attendance-management" element={<AttendanceManagement />} />
             <Route path="/attendance/my-attendance" element={<MyAttendance />} />
+            <Route path="/attendance/overtime-tracking" element={<OvertimeTracking />} />
+            <Route path="/attendance/correction-requests" element={<CorrectionRequests />} />
+            <Route path="/hr/overtime-management" element={<OvertimeManagement />} />
+            <Route path="/hr/correction-requests" element={<CorrectionRequestsManagement />} />
             <Route path="/hr/leave-management" element={<LeaveManagement />} />
             <Route path="/hr/payroll-management" element={<PayrollManagement />} />
             <Route path="/hr/compliance-dashboard" element={<ComplianceDashboard />} />

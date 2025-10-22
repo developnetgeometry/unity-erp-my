@@ -8,6 +8,9 @@ import { Loader2, MapPin, Clock, CheckCircle2, XCircle, AlertCircle } from 'luci
 import { getCurrentPosition, GeolocationError } from '@/lib/geolocation';
 import { toast } from '@/lib/toast-api';
 import { format } from 'date-fns';
+import { OTClockInButton } from '@/components/attendance/OTClockInButton';
+import { useOvertimeSessions } from '@/hooks/useAttendance';
+import { OTClockOutButton } from '@/components/attendance/OTClockOutButton';
 
 interface AttendanceStatus {
   attendance: any;
@@ -22,6 +25,14 @@ export default function MyAttendance() {
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
   const [locationPermission, setLocationPermission] = useState<PermissionState | null>(null);
+  const [employeeId, setEmployeeId] = useState<string | null>(null);
+
+  // Fetch active OT session
+  const { data: otSessions = [] } = useOvertimeSessions({
+    employee_id: employeeId || undefined,
+    status: 'active',
+  });
+  const activeOTSession = otSessions[0];
 
   useEffect(() => {
     fetchData();
@@ -49,6 +60,19 @@ export default function MyAttendance() {
 
       if (statusError) throw statusError;
       setStatus(statusData);
+
+      // Get employee ID
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: employee } = await supabase
+          .from('employees')
+          .select('id')
+          .eq('user_id', user.id)
+          .single();
+        if (employee) {
+          setEmployeeId(employee.id);
+        }
+      }
 
       // Fetch work sites
       const { data: sites, error: sitesError } = await supabase
@@ -323,6 +347,54 @@ export default function MyAttendance() {
           )}
         </CardContent>
       </Card>
+
+      {/* Overtime Section */}
+      {status?.has_clocked_out && (
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Clock className="h-5 w-5" />
+              Overtime
+            </CardTitle>
+            <CardDescription>
+              {activeOTSession ? 'You have an active overtime session' : 'Track overtime hours after your shift'}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {activeOTSession ? (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-4 bg-primary/10 rounded-lg border border-primary/20">
+                  <div>
+                    <p className="text-sm text-muted-foreground mb-1">Active OT Session</p>
+                    <p className="font-medium">Started at {format(new Date(activeOTSession.ot_in_time), 'h:mm a')}</p>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Site: {activeOTSession.work_sites?.site_name}
+                    </p>
+                  </div>
+                  <OTClockOutButton
+                    otSessionId={activeOTSession.id}
+                    otInTime={activeOTSession.ot_in_time}
+                    siteId={activeOTSession.site_id}
+                    onSuccess={() => fetchData()}
+                  />
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <p className="text-sm text-muted-foreground">
+                  You've completed your regular shift. Start tracking overtime if you're continuing to work.
+                </p>
+                <OTClockInButton
+                  attendanceRecordId={status.attendance.id}
+                  onSuccess={() => fetchData()}
+                  className="w-full"
+                  size="lg"
+                />
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Instructions Card */}
       <Card>
