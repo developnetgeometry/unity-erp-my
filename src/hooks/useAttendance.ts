@@ -37,6 +37,10 @@ export interface OvertimeSession {
   work_sites: {
     site_name: string;
   };
+  employees: {
+    full_name: string;
+    position: string;
+  };
 }
 
 export interface CorrectionRequest {
@@ -237,7 +241,7 @@ export const useOvertimeSessions = (filters?: { employee_id?: string; status?: s
         .select(`
           *,
           work_sites(site_name),
-          employees(full_name, position)
+          employees!overtime_sessions_employee_id_fkey(full_name, position)
         `)
         .order('ot_in_time', { ascending: false });
 

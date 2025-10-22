@@ -69,8 +69,8 @@ export default function CorrectionRequestsManagement() {
   const exportToCSV = () => {
     const csvData = corrections.map(c => ({
       Employee: c.employees?.full_name || 'N/A',
-      Department: c.employees?.departments?.name || 'N/A',
-      'Attendance Date': format(new Date(c.attendance_records?.attendance_date || ''), 'yyyy-MM-dd'),
+      Position: c.employees?.position || 'N/A',
+      'Record ID': c.attendance_record_id,
       Type: c.correction_type,
       Reason: c.reason.replace(/,/g, ';'),
       Status: c.status,
@@ -246,7 +246,7 @@ export default function CorrectionRequestsManagement() {
                         <div>
                           <p className="font-medium">{correction.employees?.full_name}</p>
                           <p className="text-sm text-muted-foreground">
-                            {format(new Date(correction.attendance_records?.attendance_date || ''), 'MMMM d, yyyy')}
+                            {correction.correction_type} - {correction.status}
                           </p>
                         </div>
                         <Badge variant={correction.status === 'approved' ? 'default' : 'destructive'}>
@@ -260,7 +260,7 @@ export default function CorrectionRequestsManagement() {
                         </div>
                       )}
                       <div className="text-xs text-muted-foreground">
-                        Reviewed on {format(new Date(correction.reviewed_at || correction.updated_at), 'MMM d, yyyy h:mm a')}
+                        {correction.reviewed_at && `Reviewed on ${format(new Date(correction.reviewed_at), 'MMM d, yyyy h:mm a')}`}
                       </div>
                     </div>
                   ))}

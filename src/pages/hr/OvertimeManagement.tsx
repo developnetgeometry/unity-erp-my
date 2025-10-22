@@ -53,7 +53,7 @@ export default function OvertimeManagement() {
   const handleApprove = async (sessionId: string) => {
     try {
       // Update OT session approval status directly
-      const { error } = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/overtime_sessions?id=eq.${sessionId}`, {
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/overtime_sessions?id=eq.${sessionId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -63,6 +63,8 @@ export default function OvertimeManagement() {
         body: JSON.stringify({ is_approved: true }),
       });
 
+      if (!response.ok) throw new Error('Failed to approve');
+      
       toast.success('OT session approved');
       refetch();
     } catch (error) {
@@ -73,7 +75,7 @@ export default function OvertimeManagement() {
   const exportToExcel = () => {
     const csvData = sessions.map(s => ({
       Employee: s.employees?.full_name || 'N/A',
-      Department: s.employees?.departments?.name || 'N/A',
+      Position: s.employees?.position || 'N/A',
       Date: format(new Date(s.ot_in_time), 'yyyy-MM-dd'),
       Site: s.work_sites?.site_name || 'N/A',
       'OT In': format(new Date(s.ot_in_time), 'HH:mm'),
@@ -193,7 +195,7 @@ export default function OvertimeManagement() {
                     {activeSessions.map((session) => (
                       <TableRow key={session.id}>
                         <TableCell className="font-medium">{session.employees?.full_name}</TableCell>
-                        <TableCell>{session.employees?.departments?.name || 'N/A'}</TableCell>
+                        <TableCell>{session.employees?.position || 'N/A'}</TableCell>
                         <TableCell>{session.work_sites?.site_name}</TableCell>
                         <TableCell>{format(new Date(session.ot_in_time), 'h:mm a')}</TableCell>
                         <TableCell>
@@ -290,7 +292,7 @@ export default function OvertimeManagement() {
                   {sessions.map((session) => (
                     <TableRow key={session.id}>
                       <TableCell className="font-medium">{session.employees?.full_name}</TableCell>
-                      <TableCell>{session.employees?.departments?.name || 'N/A'}</TableCell>
+                      <TableCell>{session.employees?.position || 'N/A'}</TableCell>
                       <TableCell>{format(new Date(session.ot_in_time), 'MMM d, yyyy')}</TableCell>
                       <TableCell className="font-medium">{session.total_ot_hours?.toFixed(2)} hrs</TableCell>
                       <TableCell>

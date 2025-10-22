@@ -204,9 +204,9 @@ export default function CorrectionRequests() {
                 </TableHeader>
                 <TableBody>
                   {corrections.map((correction) => (
-                    <TableRow key={correction.id}>
+                     <TableRow key={correction.id}>
                       <TableCell className="font-medium">
-                        {format(new Date(correction.attendance_records?.attendance_date || ''), 'MMM d, yyyy')}
+                        {format(new Date(correction.created_at), 'MMM d, yyyy')}
                       </TableCell>
                       <TableCell>
                         <Badge variant="outline">{getCorrectionTypeLabel(correction.correction_type)}</Badge>
