@@ -251,6 +251,7 @@ export type Database = {
           id: string
           manager_id: string | null
           name: string
+          positions: string[] | null
           updated_at: string
         }
         Insert: {
@@ -261,6 +262,7 @@ export type Database = {
           id?: string
           manager_id?: string | null
           name: string
+          positions?: string[] | null
           updated_at?: string
         }
         Update: {
@@ -271,6 +273,7 @@ export type Database = {
           id?: string
           manager_id?: string | null
           name?: string
+          positions?: string[] | null
           updated_at?: string
         }
         Relationships: [

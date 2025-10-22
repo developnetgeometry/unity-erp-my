@@ -7,6 +7,7 @@ export interface Department {
   company_id: string;
   name: string;
   description: string | null;
+  positions: string[] | null;
   manager_id: string | null;
   employee_count: number;
   created_at: string;
@@ -21,6 +22,7 @@ export interface Department {
 export interface DepartmentInput {
   name: string;
   description?: string;
+  positions?: string[];
   manager_id?: string;
 }
 

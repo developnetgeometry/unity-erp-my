@@ -169,9 +169,9 @@ Deno.serve(async (req) => {
         }
 
         const body = await req.json();
-        const { name, description, manager_id } = body;
+        const { name, description, positions, manager_id } = body;
 
-        console.log('Creating department with data:', { name, description, manager_id, companyId });
+        console.log('Creating department with data:', { name, description, positions, manager_id, companyId });
 
         if (!name) {
           return new Response(JSON.stringify({ error: 'Name is required' }), {
@@ -186,6 +186,7 @@ Deno.serve(async (req) => {
             company_id: companyId,
             name,
             description,
+            positions,
             manager_id
           }])
           .select(`
@@ -222,11 +223,12 @@ Deno.serve(async (req) => {
         }
 
         const body = await req.json();
-        const { name, description, manager_id } = body;
+        const { name, description, positions, manager_id } = body;
 
         const updateData: any = {};
         if (name !== undefined) updateData.name = name;
         if (description !== undefined) updateData.description = description;
+        if (positions !== undefined) updateData.positions = positions;
         if (manager_id !== undefined) updateData.manager_id = manager_id;
 
         const { data, error } = await supabase

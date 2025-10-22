@@ -19,15 +19,23 @@ import { useAuth } from '@/contexts/AuthContext';
 
 const departmentSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters').max(100),
-  description: z.string().max(500).optional(),
+  positions: z.string().optional(),
 });
 
-type DepartmentFormData = z.infer<typeof departmentSchema>;
+type DepartmentFormData = {
+  name: string;
+  positions?: string;
+};
+
+type DepartmentFormOutput = {
+  name: string;
+  positions?: string[];
+};
 
 interface DepartmentFormModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: DepartmentFormData) => void;
+  onSubmit: (data: DepartmentFormOutput) => void;
   department?: Department;
   isLoading?: boolean;
 }
@@ -49,7 +57,7 @@ export const DepartmentFormModal = ({
     resolver: zodResolver(departmentSchema),
     defaultValues: {
       name: department?.name || '',
-      description: department?.description || '',
+      positions: department?.positions?.join('\n') || '',
     },
   });
 
@@ -57,18 +65,26 @@ export const DepartmentFormModal = ({
     if (department) {
       reset({
         name: department.name,
-        description: department.description || '',
+        positions: department.positions?.join('\n') || '',
       });
     } else {
       reset({
         name: '',
-        description: '',
+        positions: '',
       });
     }
   }, [department, reset]);
 
   const handleFormSubmit = (data: DepartmentFormData) => {
-    onSubmit(data);
+    // Transform positions string to array
+    const positions = data.positions
+      ? data.positions.split('\n').map(p => p.trim()).filter(p => p.length > 0)
+      : [];
+    
+    onSubmit({
+      name: data.name,
+      positions,
+    });
   };
 
   return (
@@ -102,17 +118,17 @@ export const DepartmentFormModal = ({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
+            <Label htmlFor="positions">Positions</Label>
             <Textarea
-              id="description"
-              placeholder="Brief description of the department"
-              rows={3}
-              {...register('description')}
+              id="positions"
+              placeholder="Enter positions for this department (one per line)&#10;e.g., Software Developer&#10;IT Manager&#10;Network Engineer"
+              rows={5}
+              {...register('positions')}
               disabled={isLoading}
             />
-            {errors.description && (
+            {errors.positions && (
               <p className="text-sm text-destructive">
-                {errors.description.message}
+                {errors.positions.message as string}
               </p>
             )}
           </div>

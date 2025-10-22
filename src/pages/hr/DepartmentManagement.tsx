@@ -164,10 +164,13 @@ const DepartmentManagement = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
-                  {dept.description && (
-                    <p className="text-sm text-muted-foreground line-clamp-2">
-                      {dept.description}
-                    </p>
+                  {dept.positions && dept.positions.length > 0 && (
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-1">Positions:</p>
+                      <p className="text-sm">
+                        {dept.positions.join(', ')}
+                      </p>
+                    </div>
                   )}
                   <div className="flex items-center justify-between pt-2">
                     <span className="text-sm text-muted-foreground">Employees</span>
