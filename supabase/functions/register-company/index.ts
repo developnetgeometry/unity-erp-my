@@ -229,6 +229,23 @@ const handler = async (req: Request): Promise<Response> => {
       // Continue anyway as the trigger should have set this
     }
 
+    // Step 5b: Explicitly activate the user profile
+    console.log('Activating user profile...');
+    const { error: activationError } = await supabaseAdmin
+      .from('profiles')
+      .update({ 
+        status: 'active',
+        email_verified: true 
+      })
+      .eq('id', authData.user.id);
+
+    if (activationError) {
+      console.error('Profile activation error:', activationError);
+      // Continue anyway as this is not critical
+    } else {
+      console.log('Profile activated for user:', authData.user.id);
+    }
+
     // Step 6: Assign company_admin role
     console.log('Assigning company_admin role...');
     const { error: roleError } = await supabaseAdmin
