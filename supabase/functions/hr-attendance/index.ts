@@ -664,6 +664,99 @@ Deno.serve(async (req) => {
       );
     }
 
+    // GET ATTENDANCE RECORDS (with filters)
+    if ((path === 'hr-attendance' || !path) && req.method === 'GET') {
+      const startDate = url.searchParams.get('start_date');
+      const endDate = url.searchParams.get('end_date');
+      const status = url.searchParams.get('status');
+      const department = url.searchParams.get('department');
+      const search = url.searchParams.get('search');
+
+      console.log('Fetching attendance records with filters:', { startDate, endDate, status, department, search });
+
+      // Check if user is admin (can view all records) or regular employee (only their own)
+      const { data: roles } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id);
+
+      const isAdmin = roles?.some(r => r.role === 'company_admin' || r.role === 'super_admin');
+
+      // Build query
+      let query = supabase
+        .from('attendance_records')
+        .select(`
+          *,
+          employees!inner(
+            id,
+            full_name,
+            employee_number,
+            position,
+            department_id,
+            departments(id, name)
+          ),
+          work_sites(site_name, address)
+        `);
+
+      // Filter by company
+      query = query.eq('employees.company_id', employee.company_id);
+
+      // If not admin, only show own records
+      if (!isAdmin) {
+        query = query.eq('employee_id', employee.id);
+      }
+
+      // Apply date range filter
+      if (startDate) {
+        query = query.gte('attendance_date', startDate);
+      }
+      if (endDate) {
+        query = query.lte('attendance_date', endDate);
+      }
+
+      // Apply status filter
+      if (status && status !== 'all') {
+        query = query.eq('status', status);
+      }
+
+      // Apply department filter
+      if (department && department !== 'all') {
+        query = query.eq('employees.department_id', department);
+      }
+
+      // Execute query
+      const { data: records, error: fetchError } = await query.order('attendance_date', { ascending: false });
+
+      if (fetchError) {
+        console.error('Attendance records fetch error:', fetchError);
+        return new Response(
+          JSON.stringify({ error: 'Failed to fetch attendance records' }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Apply search filter (client-side since Supabase doesn't support ILIKE across joined tables easily)
+      let filteredRecords = records || [];
+      if (search) {
+        const searchLower = search.toLowerCase();
+        filteredRecords = filteredRecords.filter(record => 
+          record.employees?.full_name?.toLowerCase().includes(searchLower) ||
+          record.employees?.employee_number?.toLowerCase().includes(searchLower)
+        );
+      }
+
+      console.log(`Found ${filteredRecords.length} attendance records`);
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          records: filteredRecords,
+          count: filteredRecords.length
+        }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     // MY STATUS (current attendance for today)
     if (path === 'my-status' && req.method === 'GET') {
       const today = new Date().toISOString().split('T')[0];

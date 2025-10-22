@@ -86,14 +86,24 @@ export const useAttendanceRecords = (filters?: {
       if (filters?.department) params.append('department', filters.department);
       if (filters?.search) params.append('search', filters.search);
 
-      const url = params.toString() ? `hr-attendance?${params.toString()}` : 'hr-attendance';
+      const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+      const queryString = params.toString();
+      const url = `${SUPABASE_URL}/functions/v1/hr-attendance${queryString ? `?${queryString}` : ''}`;
 
-      const { data, error } = await supabase.functions.invoke(url, {
+      const response = await fetch(url, {
         method: 'GET',
-        headers: { Authorization: `Bearer ${session.access_token}` },
+        headers: { 
+          Authorization: `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json'
+        },
       });
 
-      if (error) throw error;
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to fetch attendance records');
+      }
+
+      const data = await response.json();
       return data.records as AttendanceRecord[];
     },
   });
