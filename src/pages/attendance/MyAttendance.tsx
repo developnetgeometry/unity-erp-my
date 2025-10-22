@@ -9,8 +9,10 @@ import { getCurrentPosition, GeolocationError } from '@/lib/geolocation';
 import { toast } from '@/lib/toast-api';
 import { format } from 'date-fns';
 import { OTClockInButton } from '@/components/attendance/OTClockInButton';
-import { useOvertimeSessions } from '@/hooks/useAttendance';
 import { OTClockOutButton } from '@/components/attendance/OTClockOutButton';
+import { ClockInButton } from '@/components/attendance/ClockInButton';
+import { ClockOutButton } from '@/components/attendance/ClockOutButton';
+import { useOvertimeSessions } from '@/hooks/useAttendance';
 
 interface AttendanceStatus {
   attendance: any;
@@ -270,25 +272,16 @@ export default function MyAttendance() {
                   <p className="text-sm text-muted-foreground mb-3">
                     You're clocked in. Don't forget to clock out when you leave!
                   </p>
-                  <Button
-                    onClick={handleClockOut}
-                    disabled={actionLoading}
-                    variant="destructive"
-                    size="lg"
-                    className="w-full"
-                  >
-                    {actionLoading ? (
-                      <>
-                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                        Processing...
-                      </>
-                    ) : (
-                      <>
-                        <Clock className="mr-2 h-5 w-5" />
-                        Clock Out
-                      </>
-                    )}
-                  </Button>
+                  <ClockOutButton
+                    attendanceRecordId={status.attendance.id}
+                    siteId={status.attendance.site_id}
+                    siteName={status.attendance.work_sites?.site_name || 'Work Site'}
+                    siteLatitude={status.attendance.work_sites?.latitude || 0}
+                    siteLongitude={status.attendance.work_sites?.longitude || 0}
+                    siteRadius={status.attendance.work_sites?.radius_meters || 100}
+                    clockInTime={status.attendance.clock_in_time}
+                    onSuccess={() => fetchData()}
+                  />
                 </div>
               )}
 
@@ -304,45 +297,11 @@ export default function MyAttendance() {
               <Alert>
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
-                  You haven't clocked in today. Select a work site and clock in to start tracking
-                  your attendance.
+                  You haven't clocked in today. Click below to start tracking your attendance.
                 </AlertDescription>
               </Alert>
 
-              <div className="space-y-3">
-                <label className="text-sm font-medium">Select Work Site</label>
-                <select
-                  value={selectedSite}
-                  onChange={(e) => setSelectedSite(e.target.value)}
-                  className="w-full p-3 border rounded-lg bg-background"
-                  disabled={actionLoading}
-                >
-                  {workSites.map((site) => (
-                    <option key={site.id} value={site.id}>
-                      {site.site_name} - {site.address}
-                    </option>
-                  ))}
-                </select>
-
-                <Button
-                  onClick={handleClockIn}
-                  disabled={actionLoading || !selectedSite || locationPermission === 'denied'}
-                  size="lg"
-                  className="w-full"
-                >
-                  {actionLoading ? (
-                    <>
-                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                      Processing...
-                    </>
-                  ) : (
-                    <>
-                      <CheckCircle2 className="mr-2 h-5 w-5" />
-                      Clock In
-                    </>
-                  )}
-                </Button>
-              </div>
+              <ClockInButton onSuccess={() => fetchData()} />
             </div>
           )}
         </CardContent>
