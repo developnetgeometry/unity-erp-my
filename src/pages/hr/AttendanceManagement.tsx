@@ -287,7 +287,7 @@ const AttendanceManagement = () => {
       {/* Records Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Attendance Records ({records.length} employees)</CardTitle>
+          <CardTitle>Attendance Records ({new Set(records.map(r => r.employee_id)).size} employees, {records.length} records)</CardTitle>
         </CardHeader>
         <CardContent>
           {isLoading ? (
