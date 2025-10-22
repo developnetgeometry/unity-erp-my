@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChevronDown, ChevronUp } from 'lucide-react';
@@ -7,6 +8,44 @@ import { ChevronDown, ChevronUp } from 'lucide-react';
 export function SessionDebug() {
   const [isExpanded, setIsExpanded] = useState(false);
   const { session, user, loading } = useAuth();
+  const [companyId, setCompanyId] = useState<string | null>(null);
+  const [roles, setRoles] = useState<string[]>([]);
+  const [profileStatus, setProfileStatus] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (!user?.id) {
+        setCompanyId(null);
+        setRoles([]);
+        setProfileStatus(null);
+        return;
+      }
+
+      try {
+        // Fetch profile
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('company_id, status')
+          .eq('id', user.id)
+          .single();
+
+        setCompanyId(profile?.company_id || null);
+        setProfileStatus(profile?.status || null);
+
+        // Fetch roles
+        const { data: userRoles } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', user.id);
+
+        setRoles(userRoles?.map(r => r.role) || []);
+      } catch (error) {
+        console.error('SessionDebug - Error fetching user data:', error);
+      }
+    };
+
+    fetchUserData();
+  }, [user?.id]);
 
   // Only show in development
   if (import.meta.env.PROD) {
@@ -79,6 +118,27 @@ export function SessionDebug() {
             </div>
             <div>
               {getTokenExpiration()}
+            </div>
+
+            <div>
+              <span className="font-semibold">Profile Status:</span>
+            </div>
+            <div className={profileStatus === 'active' ? 'text-green-600' : 'text-yellow-600'}>
+              {profileStatus || 'N/A'}
+            </div>
+
+            <div>
+              <span className="font-semibold">Company ID:</span>
+            </div>
+            <div className="truncate">
+              {companyId ? `${companyId.substring(0, 20)}...` : 'N/A'}
+            </div>
+
+            <div>
+              <span className="font-semibold">Roles:</span>
+            </div>
+            <div>
+              {roles.length > 0 ? roles.join(', ') : 'N/A'}
             </div>
 
             <div>

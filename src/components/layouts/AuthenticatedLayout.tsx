@@ -1,6 +1,7 @@
 import { Outlet } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
+import { SessionDebug } from "@/components/debug/SessionDebug";
 
 const AuthenticatedLayout = () => {
   return (
@@ -13,6 +14,7 @@ const AuthenticatedLayout = () => {
             <div className="flex-1" />
           </header>
           <div className="container py-6">
+            <SessionDebug />
             <Outlet />
           </div>
         </main>
