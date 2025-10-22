@@ -198,7 +198,7 @@ const handler = async (req: Request): Promise<Response> => {
     const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
       email: adminEmail,
       password: password,
-      email_confirm: false,
+      email_confirm: true,
       user_metadata: {
         full_name: adminName,
         company_id: company.id
@@ -243,43 +243,6 @@ const handler = async (req: Request): Promise<Response> => {
       // Log but don't fail the registration
     }
 
-    // Step 7: Generate verification token and send email
-    console.log('Generating verification token...');
-    const verificationToken = crypto.randomUUID();
-    const expiresAt = new Date();
-    expiresAt.setHours(expiresAt.getHours() + 24);
-
-    const { error: tokenError } = await supabaseAdmin
-      .from('profiles')
-      .update({
-        verification_token: verificationToken,
-        verification_token_expires_at: expiresAt.toISOString()
-      })
-      .eq('id', authData.user.id);
-
-    if (tokenError) {
-      console.error('Token generation error:', tokenError);
-    }
-
-    // Step 8: Send verification email
-    console.log('Sending verification email...');
-    try {
-      const emailResponse = await supabaseAdmin.functions.invoke('send-verification-email', {
-        body: {
-          userId: authData.user.id,
-          email: adminEmail,
-          fullName: adminName
-        }
-      });
-
-      if (emailResponse.error) {
-        console.error('Email sending error:', emailResponse.error);
-      }
-    } catch (emailError) {
-      console.error('Email function error:', emailError);
-      // Don't fail registration if email fails
-    }
-
     console.log('Registration completed successfully');
 
     return new Response(
@@ -287,7 +250,7 @@ const handler = async (req: Request): Promise<Response> => {
         success: true,
         userId: authData.user.id,
         companyId: company.id,
-        message: 'Registration successful. Please check your email to verify your account.'
+        message: 'Registration successful. You can now sign in to your account.'
       }),
       {
         status: 200,

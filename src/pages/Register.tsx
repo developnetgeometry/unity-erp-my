@@ -112,11 +112,11 @@ const Register = () => {
       }
 
       toast.success("Registration successful!", {
-        description: "Please check your email to verify your account."
+        description: "You can now sign in to your account."
       });
       
-      // Redirect to verification instructions page
-      navigate("/verify-instructions");
+      // Redirect to sign in page
+      navigate("/signin");
     } catch (error: any) {
       console.error("Registration error:", error);
       toast.error("Registration Failed", {
