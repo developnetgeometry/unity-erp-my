@@ -147,6 +147,7 @@ export const useClockOut = () => {
 
   return useMutation({
     mutationFn: async (data: {
+      attendance_record_id: string;
       latitude: number;
       longitude: number;
     }) => {
@@ -164,6 +165,7 @@ export const useClockOut = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['attendance-records'] });
+      queryClient.invalidateQueries({ queryKey: ['my-attendance-status'] });
       toast.success('Clocked out successfully');
     },
     onError: (error: any) => {
@@ -392,6 +394,190 @@ export const useReviewCorrection = () => {
     },
     onError: (error: any) => {
       toast.error(error.message || 'Failed to review correction');
+    },
+  });
+};
+
+// ============= NEW HOOKS FOR GEOFENCING CONTROL =============
+
+// Get attendance settings
+export const useAttendanceSettings = () => {
+  return useQuery({
+    queryKey: ['attendance-settings'],
+    queryFn: async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Not authenticated');
+
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/hr-attendance/settings`,
+        {
+          headers: { Authorization: `Bearer ${session.access_token}` },
+        }
+      );
+
+      if (!response.ok) throw new Error('Failed to fetch settings');
+      const data = await response.json();
+      return data.config;
+    },
+  });
+};
+
+// Get employee's authorized sites
+export const useMySites = () => {
+  return useQuery({
+    queryKey: ['my-sites'],
+    queryFn: async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Not authenticated');
+
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/hr-attendance/my-sites`,
+        {
+          headers: { Authorization: `Bearer ${session.access_token}` },
+        }
+      );
+
+      if (!response.ok) throw new Error('Failed to fetch sites');
+      const data = await response.json();
+      return data.sites || [];
+    },
+  });
+};
+
+// Get all work sites (Admin)
+export const useWorkSites = () => {
+  return useQuery({
+    queryKey: ['work-sites'],
+    queryFn: async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Not authenticated');
+
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/hr-attendance/sites`,
+        {
+          headers: { Authorization: `Bearer ${session.access_token}` },
+        }
+      );
+
+      if (!response.ok) throw new Error('Failed to fetch sites');
+      const data = await response.json();
+      return data.sites || [];
+    },
+  });
+};
+
+// Create work site
+export const useCreateSite = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (siteData: {
+      site_name: string;
+      address: string;
+      latitude: number;
+      longitude: number;
+      radius_meters: number;
+    }) => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Not authenticated');
+
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/hr-attendance/sites`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify(siteData),
+        }
+      );
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to create site');
+      }
+
+      return await response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['work-sites'] });
+      queryClient.invalidateQueries({ queryKey: ['my-sites'] });
+    },
+  });
+};
+
+// Update work site
+export const useUpdateSite = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (siteData: {
+      id: string;
+      site_name: string;
+      address: string;
+      latitude: number;
+      longitude: number;
+      radius_meters: number;
+      is_active: boolean;
+    }) => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Not authenticated');
+
+      const { id, ...updateData } = siteData;
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/hr-attendance/sites/${id}`,
+        {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify(updateData),
+        }
+      );
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to update site');
+      }
+
+      return await response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['work-sites'] });
+      queryClient.invalidateQueries({ queryKey: ['my-sites'] });
+    },
+  });
+};
+
+// Delete work site
+export const useDeleteSite = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (siteId: string) => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Not authenticated');
+
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/hr-attendance/sites/${siteId}`,
+        {
+          method: 'DELETE',
+          headers: { Authorization: `Bearer ${session.access_token}` },
+        }
+      );
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to delete site');
+      }
+
+      return await response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['work-sites'] });
+      queryClient.invalidateQueries({ queryKey: ['my-sites'] });
     },
   });
 };

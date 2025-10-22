@@ -20,6 +20,8 @@ export type Database = {
           company_id: string
           correction_window_hours: number | null
           created_at: string
+          default_clock_in_time: string | null
+          default_clock_out_time: string | null
           geofence_radius_meters: number | null
           grace_period_minutes: number | null
           id: string
@@ -33,6 +35,8 @@ export type Database = {
           company_id: string
           correction_window_hours?: number | null
           created_at?: string
+          default_clock_in_time?: string | null
+          default_clock_out_time?: string | null
           geofence_radius_meters?: number | null
           grace_period_minutes?: number | null
           id?: string
@@ -46,6 +50,8 @@ export type Database = {
           company_id?: string
           correction_window_hours?: number | null
           created_at?: string
+          default_clock_in_time?: string | null
+          default_clock_out_time?: string | null
           geofence_radius_meters?: number | null
           grace_period_minutes?: number | null
           id?: string
@@ -499,6 +505,48 @@ export type Database = {
           },
         ]
       }
+      employee_sites: {
+        Row: {
+          created_at: string | null
+          employee_id: string
+          id: string
+          is_primary: boolean | null
+          site_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          employee_id: string
+          id?: string
+          is_primary?: boolean | null
+          site_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          employee_id?: string
+          id?: string
+          is_primary?: boolean | null
+          site_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_sites_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_sites_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "work_sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       employees: {
         Row: {
           branch_id: string | null
@@ -934,6 +982,10 @@ export type Database = {
       calculate_overtime_hours: {
         Args: { p_clock_out_time: string; p_shift_end_time: string }
         Returns: number
+      }
+      can_clock_at_site: {
+        Args: { p_employee_id: string; p_site_id: string }
+        Returns: boolean
       }
       determine_attendance_status: {
         Args: {

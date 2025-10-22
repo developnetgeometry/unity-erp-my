@@ -117,6 +117,29 @@ Deno.serve(async (req) => {
         );
       }
 
+      // Check if employee has access to this site
+      const { data: siteAccess } = await supabase
+        .from('employee_sites')
+        .select('id')
+        .eq('employee_id', employee.id)
+        .eq('site_id', body.site_id)
+        .maybeSingle();
+
+      // If no site assignments exist for this employee, allow access (backward compatibility)
+      const { count: assignmentCount } = await supabase
+        .from('employee_sites')
+        .select('*', { count: 'exact', head: true })
+        .eq('employee_id', employee.id);
+
+      if (assignmentCount && assignmentCount > 0 && !siteAccess) {
+        return new Response(
+          JSON.stringify({ 
+            error: 'You are not authorized to clock in at this site. Please contact HR.' 
+          }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
       // Validate geofence
       const { data: isValid, error: geoError } = await supabase.rpc('validate_geofence', {
         p_latitude: body.latitude,
@@ -660,6 +683,253 @@ Deno.serve(async (req) => {
           message: `Correction ${body.action}d successfully`,
           action: body.action
         }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // GET MY SITES (employee's authorized work sites)
+    if (path === 'my-sites' && req.method === 'GET') {
+      const { data: sites, error: sitesError } = await supabase
+        .from('employee_sites')
+        .select(`
+          id,
+          is_primary,
+          work_sites(id, site_name, address, latitude, longitude, radius_meters)
+        `)
+        .eq('employee_id', employee.id);
+
+      if (sitesError) {
+        console.error('My sites fetch error:', sitesError);
+        return new Response(
+          JSON.stringify({ error: 'Failed to fetch authorized sites' }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      return new Response(
+        JSON.stringify({
+          sites: sites.map(s => ({ ...s.work_sites, is_primary: s.is_primary })) || []
+        }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // GET ATTENDANCE SETTINGS
+    if (path === 'settings' && req.method === 'GET') {
+      const { data: config, error: configError } = await supabase
+        .from('attendance_config')
+        .select('*')
+        .eq('company_id', employee.company_id)
+        .maybeSingle();
+
+      if (configError) {
+        console.error('Settings fetch error:', configError);
+        return new Response(
+          JSON.stringify({ error: 'Failed to fetch settings' }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      return new Response(
+        JSON.stringify({ config: config || null }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // SAVE ATTENDANCE SETTINGS (Admin only)
+    if (path === 'settings' && req.method === 'POST') {
+      // Check admin permission
+      const { data: roles } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id);
+
+      const isAdmin = roles?.some(r => r.role === 'company_admin' || r.role === 'super_admin');
+
+      if (!isAdmin) {
+        return new Response(
+          JSON.stringify({ error: 'Unauthorized: Admin access required' }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      const body = await req.json();
+
+      const { error: upsertError } = await supabase
+        .from('attendance_config')
+        .upsert({
+          company_id: employee.company_id,
+          default_clock_in_time: body.default_clock_in_time,
+          default_clock_out_time: body.default_clock_out_time,
+          grace_period_minutes: body.grace_period_minutes,
+          geofence_radius_meters: body.geofence_radius_meters,
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'company_id' });
+
+      if (upsertError) {
+        console.error('Settings save error:', upsertError);
+        return new Response(
+          JSON.stringify({ error: 'Failed to save settings' }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      return new Response(
+        JSON.stringify({ success: true, message: 'Settings saved successfully' }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // GET ALL WORK SITES (Admin only)
+    if (path === 'sites' && req.method === 'GET') {
+      const { data: sites, error: sitesError } = await supabase
+        .from('work_sites')
+        .select('*')
+        .eq('company_id', employee.company_id)
+        .order('created_at', { ascending: false });
+
+      if (sitesError) {
+        console.error('Sites fetch error:', sitesError);
+        return new Response(
+          JSON.stringify({ error: 'Failed to fetch sites' }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      return new Response(
+        JSON.stringify({ sites: sites || [] }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // CREATE WORK SITE (Admin only)
+    if (path === 'sites' && req.method === 'POST') {
+      const { data: roles } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id);
+
+      const isAdmin = roles?.some(r => r.role === 'company_admin' || r.role === 'super_admin');
+
+      if (!isAdmin) {
+        return new Response(
+          JSON.stringify({ error: 'Unauthorized: Admin access required' }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      const body = await req.json();
+
+      const { data: newSite, error: insertError } = await supabase
+        .from('work_sites')
+        .insert({
+          company_id: employee.company_id,
+          site_name: body.site_name,
+          address: body.address,
+          latitude: body.latitude,
+          longitude: body.longitude,
+          radius_meters: body.radius_meters || 100,
+          created_by: user.id
+        })
+        .select()
+        .single();
+
+      if (insertError) {
+        console.error('Site creation error:', insertError);
+        return new Response(
+          JSON.stringify({ error: 'Failed to create site' }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      return new Response(
+        JSON.stringify({ success: true, site: newSite }),
+        { status: 201, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // UPDATE WORK SITE (Admin only)
+    if (path && path.startsWith('sites/') && req.method === 'PATCH') {
+      const siteId = path.split('/')[1];
+
+      const { data: roles } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id);
+
+      const isAdmin = roles?.some(r => r.role === 'company_admin' || r.role === 'super_admin');
+
+      if (!isAdmin) {
+        return new Response(
+          JSON.stringify({ error: 'Unauthorized: Admin access required' }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      const body = await req.json();
+
+      const { error: updateError } = await supabase
+        .from('work_sites')
+        .update({
+          site_name: body.site_name,
+          address: body.address,
+          latitude: body.latitude,
+          longitude: body.longitude,
+          radius_meters: body.radius_meters,
+          is_active: body.is_active,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', siteId)
+        .eq('company_id', employee.company_id);
+
+      if (updateError) {
+        console.error('Site update error:', updateError);
+        return new Response(
+          JSON.stringify({ error: 'Failed to update site' }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      return new Response(
+        JSON.stringify({ success: true, message: 'Site updated successfully' }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // DELETE WORK SITE (Admin only)
+    if (path && path.startsWith('sites/') && req.method === 'DELETE') {
+      const siteId = path.split('/')[1];
+
+      const { data: roles } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id);
+
+      const isAdmin = roles?.some(r => r.role === 'company_admin' || r.role === 'super_admin');
+
+      if (!isAdmin) {
+        return new Response(
+          JSON.stringify({ error: 'Unauthorized: Admin access required' }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      const { error: deleteError } = await supabase
+        .from('work_sites')
+        .delete()
+        .eq('id', siteId)
+        .eq('company_id', employee.company_id);
+
+      if (deleteError) {
+        console.error('Site deletion error:', deleteError);
+        return new Response(
+          JSON.stringify({ error: 'Failed to delete site' }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      return new Response(
+        JSON.stringify({ success: true, message: 'Site deleted successfully' }),
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
