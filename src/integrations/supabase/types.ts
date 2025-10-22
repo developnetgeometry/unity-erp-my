@@ -25,6 +25,8 @@ export type Database = {
           geofence_radius_meters: number | null
           grace_period_minutes: number | null
           id: string
+          late_clockin_adjustment_enabled: boolean | null
+          minimum_working_hours: number | null
           notification_settings: Json | null
           ot_auto_close_hours: number | null
           updated_at: string
@@ -40,6 +42,8 @@ export type Database = {
           geofence_radius_meters?: number | null
           grace_period_minutes?: number | null
           id?: string
+          late_clockin_adjustment_enabled?: boolean | null
+          minimum_working_hours?: number | null
           notification_settings?: Json | null
           ot_auto_close_hours?: number | null
           updated_at?: string
@@ -55,6 +59,8 @@ export type Database = {
           geofence_radius_meters?: number | null
           grace_period_minutes?: number | null
           id?: string
+          late_clockin_adjustment_enabled?: boolean | null
+          minimum_working_hours?: number | null
           notification_settings?: Json | null
           ot_auto_close_hours?: number | null
           updated_at?: string

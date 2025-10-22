@@ -280,6 +280,53 @@ Deno.serve(async (req) => {
         );
       }
 
+      // Get attendance config for minimum working hours check
+      const { data: attendanceConfig } = await supabase
+        .from('attendance_config')
+        .select('minimum_working_hours, late_clockin_adjustment_enabled, grace_period_minutes, default_clock_in_time')
+        .eq('company_id', employee.company_id)
+        .single();
+
+      // Check if late clock-in adjustment is enabled
+      if (attendanceConfig?.late_clockin_adjustment_enabled && record.clock_in_time) {
+        const clockInTime = new Date(record.clock_in_time);
+        const clockInDate = clockInTime.toISOString().split('T')[0];
+        
+        // Get the default clock in time for the day
+        const defaultClockInTime = attendanceConfig.default_clock_in_time || '09:00:00';
+        const [hours, minutes] = defaultClockInTime.split(':').map(Number);
+        
+        // Calculate grace period end time
+        const gracePeriodMinutes = attendanceConfig.grace_period_minutes || 10;
+        const graceEndTime = new Date(`${clockInDate}T${defaultClockInTime}`);
+        graceEndTime.setMinutes(graceEndTime.getMinutes() + gracePeriodMinutes);
+        
+        // Check if employee clocked in late (after grace period)
+        if (clockInTime > graceEndTime) {
+          const minimumWorkingHours = attendanceConfig.minimum_working_hours || 9;
+          const requiredClockOutTime = new Date(clockInTime);
+          requiredClockOutTime.setHours(requiredClockOutTime.getHours() + minimumWorkingHours);
+          
+          const now = new Date();
+          
+          // If current time is before required clock out time, prevent clock out
+          if (now < requiredClockOutTime) {
+            const remainingMinutes = Math.ceil((requiredClockOutTime.getTime() - now.getTime()) / (1000 * 60));
+            const remainingHours = Math.floor(remainingMinutes / 60);
+            const remainingMins = remainingMinutes % 60;
+            
+            return new Response(
+              JSON.stringify({
+                error: `Minimum working hours not completed. You clocked in late and must work ${minimumWorkingHours} hours. Please wait ${remainingHours}h ${remainingMins}m before clocking out.`,
+                required_clock_out_time: requiredClockOutTime.toISOString(),
+                remaining_minutes: remainingMinutes,
+              }),
+              { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
+          }
+        }
+      }
+
       // Update with clock out
       const { data: updated, error: updateError } = await supabase
         .from('attendance_records')
@@ -763,6 +810,8 @@ Deno.serve(async (req) => {
           default_clock_out_time: body.default_clock_out_time,
           grace_period_minutes: body.grace_period_minutes,
           geofence_radius_meters: body.geofence_radius_meters,
+          minimum_working_hours: body.minimum_working_hours,
+          late_clockin_adjustment_enabled: body.late_clockin_adjustment_enabled,
           updated_at: new Date().toISOString()
         }, { onConflict: 'company_id' });
 

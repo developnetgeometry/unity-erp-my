@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
 import { Clock, CheckCircle, XCircle, AlertCircle, RefreshCw, MapPin, AlertTriangle, Plus, Pencil, Trash2, Save, Settings, UserCheck, Users } from 'lucide-react';
 import { format } from 'date-fns';
 import { useAttendanceSettings, useWorkSites, useDeleteSite } from '@/hooks/useAttendance';
@@ -35,6 +36,8 @@ const AttendanceManagement = () => {
   const [clockOutTime, setClockOutTime] = useState('18:00');
   const [gracePeriod, setGracePeriod] = useState('10');
   const [geofenceRadius, setGeofenceRadius] = useState('100');
+  const [minimumWorkingHours, setMinimumWorkingHours] = useState('9');
+  const [lateClockInAdjustment, setLateClockInAdjustment] = useState(true);
   const [showAddSite, setShowAddSite] = useState(false);
   const [editingSite, setEditingSite] = useState<any>(null);
 
@@ -45,6 +48,8 @@ const AttendanceManagement = () => {
       setClockOutTime(config.default_clock_out_time || '18:00');
       setGracePeriod(config.grace_period_minutes?.toString() || '10');
       setGeofenceRadius(config.geofence_radius_meters?.toString() || '100');
+      setMinimumWorkingHours(config.minimum_working_hours?.toString() || '9');
+      setLateClockInAdjustment(config.late_clockin_adjustment_enabled ?? true);
     }
   });
 
@@ -63,6 +68,8 @@ const AttendanceManagement = () => {
             default_clock_out_time: clockOutTime,
             grace_period_minutes: parseInt(gracePeriod),
             geofence_radius_meters: parseInt(geofenceRadius),
+            minimum_working_hours: parseFloat(minimumWorkingHours),
+            late_clockin_adjustment_enabled: lateClockInAdjustment,
           }),
         }
       );
@@ -242,6 +249,38 @@ const AttendanceManagement = () => {
                     Location validation radius (default: 100m)
                   </p>
                 </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="minimum-hours">Minimum Working Hours</Label>
+                  <Input
+                    id="minimum-hours"
+                    type="number"
+                    min="1"
+                    max="24"
+                    step="0.5"
+                    value={minimumWorkingHours}
+                    onChange={(e) => setMinimumWorkingHours(e.target.value)}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Required hours per day (default: 9 hours)
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start space-x-3 rounded-lg border border-border p-4 bg-muted/30">
+                <div className="flex-1 space-y-1">
+                  <Label htmlFor="late-adjustment" className="text-base font-medium">
+                    Late Clock-In Adjustment
+                  </Label>
+                  <p className="text-sm text-muted-foreground">
+                    When enabled, employees who clock in late must complete full {minimumWorkingHours} working hours before being allowed to clock out.
+                  </p>
+                </div>
+                <Switch
+                  id="late-adjustment"
+                  checked={lateClockInAdjustment}
+                  onCheckedChange={setLateClockInAdjustment}
+                />
               </div>
 
               <Button onClick={handleSaveSettings} disabled={configLoading}>
