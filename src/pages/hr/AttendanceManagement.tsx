@@ -44,18 +44,6 @@ const AttendanceManagement = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      // Fetch today's summary
-      const { data: summaryData, error: summaryError } = await supabase.functions.invoke(
-        'hr-attendance/today-summary',
-        { method: 'GET' }
-      );
-
-      if (summaryError) {
-        console.error('Summary error:', summaryError);
-      } else {
-        setSummary(summaryData);
-      }
-
       // Fetch today's attendance records
       const today = new Date().toISOString().split('T')[0];
       const { data: recordsData, error: recordsError } = await supabase
@@ -73,6 +61,22 @@ const AttendanceManagement = () => {
         toast.error('Failed to load attendance records');
       } else {
         setRecords(recordsData || []);
+        
+        // Calculate summary from records
+        const presentStatuses = ['on_time', 'late', 'half_day'];
+        const presentCount = recordsData?.filter(r => presentStatuses.includes(r.status)).length || 0;
+        const lateCount = recordsData?.filter(r => r.status === 'late').length || 0;
+        const absentCount = recordsData?.filter(r => r.status === 'absent').length || 0;
+        const totalHours = recordsData?.reduce((sum, r) => sum + (r.hours_worked || 0), 0) || 0;
+        const avgHours = presentCount > 0 ? totalHours / presentCount : 0;
+        
+        setSummary({
+          present_count: presentCount,
+          late_count: lateCount,
+          absent_count: absentCount,
+          average_hours: avgHours,
+          total_employees: recordsData?.length || 0,
+        });
       }
     } catch (error: any) {
       console.error('Error fetching data:', error);
