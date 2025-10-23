@@ -13,29 +13,22 @@ export const EmployeeStatusBadge = ({ status, className }: EmployeeStatusBadgePr
       text: 'text-white',
       label: 'Active'
     },
-    'Deactivated': {
+    'Inactive': {
       bg: 'bg-[#EF4444]',
       text: 'text-white',
-      label: 'Deactivated'
-    },
-    'Terminated': {
-      bg: 'bg-[#EF4444]',
-      text: 'text-white',
-      label: 'Terminated'
-    },
-    'On Leave': {
-      bg: 'bg-amber-500',
-      text: 'text-white',
-      label: 'On Leave'
-    },
-    'Probation': {
-      bg: 'bg-blue-500',
-      text: 'text-white',
-      label: 'Probation'
+      label: 'Inactive'
     }
   };
 
-  const style = statusStyles[status as keyof typeof statusStyles] || statusStyles['Active'];
+  // Handle legacy status values - map them to Active/Inactive
+  const normalizedStatus = status.toLowerCase();
+  let displayStatus: 'Active' | 'Inactive' = 'Active';
+  
+  if (normalizedStatus === 'inactive' || normalizedStatus === 'terminated' || normalizedStatus === 'deactivated') {
+    displayStatus = 'Inactive';
+  }
+
+  const style = statusStyles[displayStatus];
 
   return (
     <Badge

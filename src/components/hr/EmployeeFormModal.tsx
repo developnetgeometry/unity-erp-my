@@ -37,7 +37,7 @@ const employeeSchema = z.object({
   position: z.string().min(1, 'Position is required'),
   department_id: z.string().optional(),
   join_date: z.string().min(1, 'Join date is required'),
-  status: z.enum(['Active', 'On Leave', 'Terminated', 'Probation']).optional(),
+  status: z.enum(['Active', 'Inactive']).optional(),
 });
 
 type EmployeeFormValues = z.infer<typeof employeeSchema>;
@@ -96,6 +96,15 @@ export const EmployeeFormModal = ({
 
   useEffect(() => {
     if (employee) {
+      // Normalize status - convert legacy values to Active/Inactive
+      const normalizeStatus = (status: string): 'Active' | 'Inactive' => {
+        const lowerStatus = status.toLowerCase();
+        if (lowerStatus === 'inactive' || lowerStatus === 'terminated' || lowerStatus === 'deactivated' || lowerStatus === 'on leave') {
+          return 'Inactive';
+        }
+        return 'Active';
+      };
+
       form.reset({
         full_name: employee.full_name,
         ic_number: employee.ic_number || '',
@@ -104,7 +113,7 @@ export const EmployeeFormModal = ({
         position: employee.position,
         department_id: employee.department_id || '',
         join_date: employee.join_date,
-        status: employee.status,
+        status: normalizeStatus(employee.status),
       });
       
       // Set available positions for existing employee's department
@@ -297,22 +306,10 @@ export const EmployeeFormModal = ({
                             Active
                           </div>
                         </SelectItem>
-                        <SelectItem value="On Leave">
-                          <div className="flex items-center gap-2">
-                            <div className="w-2 h-2 rounded-full bg-amber-500"></div>
-                            On Leave
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="Probation">
-                          <div className="flex items-center gap-2">
-                            <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-                            Probation
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="Terminated">
+                        <SelectItem value="Inactive">
                           <div className="flex items-center gap-2">
                             <div className="w-2 h-2 rounded-full bg-[#EF4444]"></div>
-                            Terminated
+                            Inactive
                           </div>
                         </SelectItem>
                       </SelectContent>
