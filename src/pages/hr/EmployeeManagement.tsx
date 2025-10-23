@@ -31,6 +31,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { EmployeeFormModal } from '@/components/hr/EmployeeFormModal';
+import { EmployeeStatusBadge } from '@/components/hr/EmployeeStatusBadge';
 import {
   useEmployees,
   useCreateEmployee,
@@ -237,16 +238,7 @@ const EmployeeManagement = () => {
                   )}
                   <div className="flex items-center justify-between pt-2 border-t border-border">
                     <span className="text-sm text-muted-foreground">Status</span>
-                    <Badge
-                      variant={employee.status === 'Active' ? 'default' : 'secondary'}
-                      className={
-                        employee.status === 'Active'
-                          ? 'bg-green-600 text-white'
-                          : ''
-                      }
-                    >
-                      {employee.status}
-                    </Badge>
+                    <EmployeeStatusBadge status={employee.status} />
                   </div>
                 </div>
               </CardContent>

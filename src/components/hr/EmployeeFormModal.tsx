@@ -291,10 +291,30 @@ export const EmployeeFormModal = ({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="Active">Active</SelectItem>
-                        <SelectItem value="On Leave">On Leave</SelectItem>
-                        <SelectItem value="Probation">Probation</SelectItem>
-                        <SelectItem value="Terminated">Terminated</SelectItem>
+                        <SelectItem value="Active">
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 rounded-full bg-[#22C55E]"></div>
+                            Active
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="On Leave">
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 rounded-full bg-amber-500"></div>
+                            On Leave
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="Probation">
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                            Probation
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="Terminated">
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 rounded-full bg-[#EF4444]"></div>
+                            Terminated
+                          </div>
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
