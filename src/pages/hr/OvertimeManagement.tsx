@@ -5,12 +5,19 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Clock, Download, TrendingUp, CheckCircle, XCircle, Users, Loader2 } from 'lucide-react';
+import { Clock, Download, TrendingUp, CheckCircle, XCircle, Users, Loader2, X, Check } from 'lucide-react';
 import { useOvertimeSessions, useReviewCorrection } from '@/hooks/useAttendance';
 import { toast } from '@/lib/toast-api';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function OvertimeManagement() {
   const [activeElapsed, setActiveElapsed] = useState<Record<string, string>>({});
+  const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
+  const [selectedSession, setSelectedSession] = useState<string | null>(null);
+  const [rejectionReason, setRejectionReason] = useState("");
 
   const { data: sessions = [], isLoading, refetch } = useOvertimeSessions({});
   const reviewCorrection = useReviewCorrection();
@@ -52,23 +59,33 @@ export default function OvertimeManagement() {
 
   const handleApprove = async (sessionId: string) => {
     try {
-      // Update OT session approval status directly
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/overtime_sessions?id=eq.${sessionId}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-        },
-        body: JSON.stringify({ is_approved: true }),
+      const { data, error } = await supabase.functions.invoke('hr-attendance/approve-ot', {
+        body: { ot_session_id: sessionId }
       });
 
-      if (!response.ok) throw new Error('Failed to approve');
-      
-      toast.success('OT session approved');
+      if (error) throw error;
+
+      toast.success(data?.message || 'Overtime session approved');
       refetch();
-    } catch (error) {
-      toast.error('Failed to approve OT session');
+    } catch (error: any) {
+      console.error('Error approving OT:', error);
+      toast.error(error.message || 'Failed to approve overtime session');
+    }
+  };
+
+  const handleReject = async (sessionId: string, reason: string) => {
+    try {
+      const { data, error } = await supabase.functions.invoke('hr-attendance/reject-ot', {
+        body: { ot_session_id: sessionId, rejection_reason: reason }
+      });
+
+      if (error) throw error;
+
+      toast.success(data?.message || 'Overtime session rejected');
+      refetch();
+    } catch (error: any) {
+      console.error('Error rejecting OT:', error);
+      toast.error(error.message || 'Failed to reject overtime session');
     }
   };
 
@@ -243,14 +260,27 @@ export default function OvertimeManagement() {
                         <TableCell>{session.work_sites?.site_name}</TableCell>
                         <TableCell className="font-bold">{session.total_ot_hours?.toFixed(2)} hrs</TableCell>
                         <TableCell>
-                          <Button
-                            size="sm"
-                            onClick={() => handleApprove(session.id)}
-                            className="mr-2"
-                          >
-                            <CheckCircle className="h-4 w-4 mr-1" />
-                            Approve
-                          </Button>
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              onClick={() => handleApprove(session.id)}
+                              variant="default"
+                            >
+                              <Check className="h-4 w-4 mr-1" />
+                              Approve
+                            </Button>
+                            <Button
+                              size="sm"
+                              onClick={() => {
+                                setSelectedSession(session.id);
+                                setRejectDialogOpen(true);
+                              }}
+                              variant="destructive"
+                            >
+                              <X className="h-4 w-4 mr-1" />
+                              Reject
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -317,6 +347,58 @@ export default function OvertimeManagement() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Rejection Dialog */}
+      <Dialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Reject Overtime Session</DialogTitle>
+            <DialogDescription>
+              Please provide a reason for rejecting this overtime session. This will be communicated to the employee.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="rejection-reason">Rejection Reason</Label>
+              <Textarea
+                id="rejection-reason"
+                placeholder="e.g., Overtime not pre-approved, insufficient justification, etc."
+                value={rejectionReason}
+                onChange={(e) => setRejectionReason(e.target.value)}
+                rows={4}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setRejectDialogOpen(false);
+                setRejectionReason("");
+                setSelectedSession(null);
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                if (selectedSession && rejectionReason.trim()) {
+                  handleReject(selectedSession, rejectionReason);
+                  setRejectDialogOpen(false);
+                  setRejectionReason("");
+                  setSelectedSession(null);
+                } else {
+                  toast.warning("Please provide a rejection reason");
+                }
+              }}
+              disabled={!rejectionReason.trim()}
+            >
+              Reject Overtime
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

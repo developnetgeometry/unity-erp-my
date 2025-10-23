@@ -689,6 +689,7 @@ export type Database = {
           ot_out_latitude: number | null
           ot_out_longitude: number | null
           ot_out_time: string | null
+          rejection_reason: string | null
           site_id: string
           status: string
           total_ot_hours: number | null
@@ -709,6 +710,7 @@ export type Database = {
           ot_out_latitude?: number | null
           ot_out_longitude?: number | null
           ot_out_time?: string | null
+          rejection_reason?: string | null
           site_id: string
           status?: string
           total_ot_hours?: number | null
@@ -729,6 +731,7 @@ export type Database = {
           ot_out_latitude?: number | null
           ot_out_longitude?: number | null
           ot_out_time?: string | null
+          rejection_reason?: string | null
           site_id?: string
           status?: string
           total_ot_hours?: number | null

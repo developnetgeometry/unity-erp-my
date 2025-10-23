@@ -370,7 +370,7 @@ Deno.serve(async (req) => {
       // Validate employee has attendance record and clocked out today
       const { data: attendance } = await supabase
         .from('attendance_records')
-        .select('id, clock_out_time')
+        .select('id, clock_in_time, clock_out_time, hours_worked')
         .eq('id', body.attendance_record_id)
         .eq('employee_id', employee.id)
         .eq('attendance_date', today)
@@ -386,6 +386,17 @@ Deno.serve(async (req) => {
       if (!attendance.clock_out_time) {
         return new Response(
           JSON.stringify({ error: 'Please clock out first before starting overtime' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // CRITICAL: Validate 9-hour minimum work requirement
+      const hoursWorked = attendance.hours_worked || 0;
+      if (hoursWorked < 9) {
+        return new Response(
+          JSON.stringify({ 
+            error: `You must complete at least 9 working hours before starting overtime. You have worked ${hoursWorked.toFixed(2)} hours.` 
+          }),
           { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
@@ -525,6 +536,183 @@ Deno.serve(async (req) => {
           message: 'Overtime session completed',
           ot_session: updated,
           total_hours: updated.total_ot_hours
+        }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // APPROVE OVERTIME
+    if (path === 'approve-ot' && req.method === 'POST') {
+      const { ot_session_id } = await req.json();
+      console.log('Approve OT request:', { ot_session_id, admin_id: user.id });
+
+      // Verify user is admin
+      const { data: isAdmin } = await supabase.rpc('has_role', {
+        _user_id: user.id,
+        _role: 'company_admin'
+      });
+
+      if (!isAdmin) {
+        return new Response(
+          JSON.stringify({ error: 'Unauthorized. Admin access required.' }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Get OT session to verify it exists and is in company
+      const { data: otSession, error: fetchError } = await supabase
+        .from('overtime_sessions')
+        .select('id, employee_id, status, is_approved, employees!inner(company_id, full_name)')
+        .eq('id', ot_session_id)
+        .single();
+
+      if (fetchError || !otSession) {
+        return new Response(
+          JSON.stringify({ error: 'Overtime session not found' }),
+          { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Verify admin is from same company
+      const otEmployee = Array.isArray(otSession.employees) ? otSession.employees[0] : otSession.employees;
+      if (otEmployee.company_id !== employee.company_id) {
+        return new Response(
+          JSON.stringify({ error: 'Cannot approve overtime from another company' }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Check if already approved
+      if (otSession.status === 'completed' && otSession.is_approved) {
+        return new Response(
+          JSON.stringify({ error: 'Overtime session already approved' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Approve the OT session
+      const { data: approved, error: updateError } = await supabase
+        .from('overtime_sessions')
+        .update({
+          is_approved: true,
+          approved_by: user.id,
+          approved_at: new Date().toISOString(),
+          rejection_reason: null
+        })
+        .eq('id', ot_session_id)
+        .select('*, employees(full_name)')
+        .single();
+
+      if (updateError) {
+        console.error('Approval error:', updateError);
+        return new Response(
+          JSON.stringify({ error: 'Failed to approve overtime session' }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Insert notification for employee
+      await supabase.from('notification_log').insert({
+        employee_id: otSession.employee_id,
+        notification_type: 'ot_approved',
+        title: 'Overtime Approved',
+        message: `Your overtime session has been approved (${approved.total_ot_hours?.toFixed(2) || 0} hours)`,
+        data: { ot_session_id, approved_by: user.id }
+      });
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          message: 'Overtime session approved',
+          ot_session: approved
+        }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // REJECT OVERTIME
+    if (path === 'reject-ot' && req.method === 'POST') {
+      const { ot_session_id, rejection_reason } = await req.json();
+      console.log('Reject OT request:', { ot_session_id, admin_id: user.id });
+
+      if (!rejection_reason || rejection_reason.trim().length === 0) {
+        return new Response(
+          JSON.stringify({ error: 'Rejection reason is required' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Verify user is admin
+      const { data: isAdmin } = await supabase.rpc('has_role', {
+        _user_id: user.id,
+        _role: 'company_admin'
+      });
+
+      if (!isAdmin) {
+        return new Response(
+          JSON.stringify({ error: 'Unauthorized. Admin access required.' }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Get OT session
+      const { data: otSession, error: fetchError } = await supabase
+        .from('overtime_sessions')
+        .select('id, employee_id, employees!inner(company_id, full_name)')
+        .eq('id', ot_session_id)
+        .single();
+
+      if (fetchError || !otSession) {
+        return new Response(
+          JSON.stringify({ error: 'Overtime session not found' }),
+          { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Verify admin is from same company
+      const otEmployee = Array.isArray(otSession.employees) ? otSession.employees[0] : otSession.employees;
+      if (otEmployee.company_id !== employee.company_id) {
+        return new Response(
+          JSON.stringify({ error: 'Cannot reject overtime from another company' }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Reject the OT session
+      const { data: rejected, error: updateError } = await supabase
+        .from('overtime_sessions')
+        .update({
+          is_approved: false,
+          approved_by: user.id,
+          approved_at: new Date().toISOString(),
+          rejection_reason: rejection_reason.trim()
+        })
+        .eq('id', ot_session_id)
+        .select('*, employees(full_name)')
+        .single();
+
+      if (updateError) {
+        console.error('Rejection error:', updateError);
+        return new Response(
+          JSON.stringify({ error: 'Failed to reject overtime session' }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Insert notification for employee
+      await supabase.from('notification_log').insert({
+        employee_id: otSession.employee_id,
+        notification_type: 'ot_rejected',
+        title: 'Overtime Rejected',
+        message: `Your overtime request was not approved. Reason: ${rejection_reason}`,
+        data: { ot_session_id, rejected_by: user.id, rejection_reason }
+      });
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          message: 'Overtime session rejected',
+          ot_session: rejected
         }),
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
