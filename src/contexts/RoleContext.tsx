@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, ReactNode, useMemo } fr
 import { useUserRoles } from '@/hooks/useUserRoles';
 import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 
 type ActiveRole = 'super_admin' | 'employee';
 
@@ -66,11 +67,19 @@ export function RoleProvider({ children }: { children: ReactNode }) {
     // Only allow switching to admin view if user has admin roles
     if (role === 'super_admin' && !canAccessAdminFeatures) {
       console.warn('User does not have admin privileges');
+      toast.error('You do not have admin privileges');
       return;
     }
 
     setActiveRole(role);
     localStorage.setItem(STORAGE_KEY, role);
+    
+    // Show feedback toast
+    toast.success(
+      role === 'employee' 
+        ? '✓ Switched to Employee View' 
+        : '✓ Switched to Super Admin View'
+    );
     
     // Invalidate queries that might be role-dependent
     queryClient.invalidateQueries({ queryKey: ['sidebar-modules'] });

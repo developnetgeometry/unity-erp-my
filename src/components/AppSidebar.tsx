@@ -43,6 +43,9 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { RoleToggle } from "@/components/sidebar/RoleToggle";
+import { useRole } from "@/contexts/RoleContext";
+import { useMemo } from "react";
 
 const modules = [
   {
@@ -107,10 +110,56 @@ const modules = [
   },
 ];
 
+// Employee-specific modules (limited access)
+const employeeModules = [
+  {
+    title: "Dashboard",
+    icon: LayoutDashboard,
+    url: "/dashboard",
+  },
+  {
+    title: "Attendance",
+    icon: Clock,
+    url: "/attendance/my-attendance",
+  },
+  {
+    title: "Leave",
+    icon: CalendarCheck,
+    url: "/hr/leave-management",
+  },
+  {
+    title: "Payslip",
+    icon: Wallet,
+    url: "/employee/payslips",
+  },
+  {
+    title: "Claims",
+    icon: FileBarChart,
+    url: "/employee/claims",
+  },
+  {
+    title: "Settings",
+    icon: Settings,
+    items: [
+      { title: "Profile", icon: User, url: "/employee/profile" },
+      { title: "Security", icon: ShieldCheck, url: "/employee/security" },
+    ],
+  },
+];
+
 export function AppSidebar() {
   const { state } = useSidebar();
   const isCollapsed = state === "collapsed";
   const navigate = useNavigate();
+  const { activeRole } = useRole();
+
+  // Filter modules based on active role
+  const visibleModules = useMemo(() => {
+    if (activeRole === 'employee') {
+      return employeeModules;
+    }
+    return modules; // Full admin modules
+  }, [activeRole]);
 
   const handleLogout = () => {
     // Logout functionality disabled (no authentication)
@@ -132,12 +181,19 @@ export function AppSidebar() {
             </div>
           )}
         </div>
+        
+        {/* Role Toggle */}
+        {!isCollapsed && (
+          <div className="px-2 pb-4">
+            <RoleToggle />
+          </div>
+        )}
       </SidebarHeader>
 
       <SidebarContent>
         <SidebarGroup>
           <SidebarMenu>
-            {modules.map((module) => {
+            {visibleModules.map((module) => {
               if (!module.items) {
                 return (
                   <SidebarMenuItem key={module.title}>
