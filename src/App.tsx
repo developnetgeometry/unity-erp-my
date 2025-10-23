@@ -6,6 +6,7 @@ import { ModalContainer } from "@/components/overlay/modal-container";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
+import { RoleProvider } from "./contexts/RoleContext";
 import PublicLayout from "./components/layouts/PublicLayout";
 import AuthenticatedLayout from "./components/layouts/AuthenticatedLayout";
 import Landing from "./pages/Landing";
@@ -40,13 +41,14 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <ToastContainer />
-        <ModalContainer />
-        <BrowserRouter>
-        <Routes>
+      <RoleProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <ToastContainer />
+          <ModalContainer />
+          <BrowserRouter>
+          <Routes>
           {/* Public Routes */}
           <Route element={<PublicLayout />}>
             <Route path="/" element={<Landing />} />
@@ -95,6 +97,7 @@ const App = () => (
         </Routes>
       </BrowserRouter>
       </TooltipProvider>
+      </RoleProvider>
     </AuthProvider>
   </QueryClientProvider>
 );
