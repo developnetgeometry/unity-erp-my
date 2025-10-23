@@ -27,7 +27,7 @@ import {
 } from '@/components/ui/select';
 import { Employee } from '@/hooks/useEmployees';
 import { useDepartments } from '@/hooks/useDepartments';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 const employeeSchema = z.object({
   full_name: z.string().min(1, 'Name is required').max(100),
@@ -58,6 +58,7 @@ export const EmployeeFormModal = ({
   isLoading,
 }: EmployeeFormModalProps) => {
   const { data: departments = [] } = useDepartments();
+  const [availablePositions, setAvailablePositions] = useState<string[]>([]);
   
   const form = useForm<EmployeeFormValues>({
     resolver: zodResolver(employeeSchema),
@@ -73,6 +74,26 @@ export const EmployeeFormModal = ({
     },
   });
 
+  // Watch department changes and update available positions
+  useEffect(() => {
+    const subscription = form.watch((value, { name }) => {
+      if (name === 'department_id' && value.department_id) {
+        const dept = departments.find(d => d.id === value.department_id);
+        setAvailablePositions(dept?.positions || []);
+        
+        // Clear position if it doesn't exist in new department
+        const currentPosition = form.getValues('position');
+        if (currentPosition && !dept?.positions?.includes(currentPosition)) {
+          form.setValue('position', '');
+        }
+      } else if (name === 'department_id' && !value.department_id) {
+        setAvailablePositions([]);
+        form.setValue('position', '');
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [departments, form]);
+
   useEffect(() => {
     if (employee) {
       form.reset({
@@ -85,6 +106,12 @@ export const EmployeeFormModal = ({
         join_date: employee.join_date,
         status: employee.status,
       });
+      
+      // Set available positions for existing employee's department
+      if (employee.department_id) {
+        const dept = departments.find(d => d.id === employee.department_id);
+        setAvailablePositions(dept?.positions || []);
+      }
     } else {
       form.reset({
         full_name: '',
@@ -96,8 +123,9 @@ export const EmployeeFormModal = ({
         join_date: new Date().toISOString().split('T')[0],
         status: 'Active',
       });
+      setAvailablePositions([]);
     }
-  }, [employee, form]);
+  }, [employee, form, departments]);
 
   const handleSubmit = (data: EmployeeFormValues) => {
     onSubmit(data);
@@ -178,24 +206,10 @@ export const EmployeeFormModal = ({
 
               <FormField
                 control={form.control}
-                name="position"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Position *</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Senior Developer" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
                 name="department_id"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Department</FormLabel>
+                    <FormLabel>Department *</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
@@ -206,6 +220,41 @@ export const EmployeeFormModal = ({
                         {departments.map((dept) => (
                           <SelectItem key={dept.id} value={dept.id}>
                             {dept.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="position"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Position *</FormLabel>
+                    <Select 
+                      onValueChange={field.onChange} 
+                      value={field.value}
+                      disabled={!form.watch('department_id') || availablePositions.length === 0}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder={
+                            !form.watch('department_id') 
+                              ? "Select department first" 
+                              : availablePositions.length === 0
+                                ? "No positions available"
+                                : "Select position"
+                          } />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {availablePositions.map((position) => (
+                          <SelectItem key={position} value={position}>
+                            {position}
                           </SelectItem>
                         ))}
                       </SelectContent>
