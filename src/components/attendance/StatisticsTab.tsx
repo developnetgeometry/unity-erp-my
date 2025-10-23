@@ -86,7 +86,7 @@ export const StatisticsTab = () => {
                   <Legend />
                   <Bar
                     dataKey="rate"
-                    fill="#5F26B4"
+                    fill="hsl(330, 81%, 50%)"
                     name="Attendance Rate (%)"
                     radius={[8, 8, 0, 0]}
                   />
@@ -145,7 +145,7 @@ export const StatisticsTab = () => {
                     <Line
                       type="monotone"
                       dataKey="rate"
-                      stroke="#5F26B4"
+                      stroke="hsl(330, 81%, 50%)"
                       strokeWidth={2}
                       name="Attendance Rate (%)"
                       dot={false}

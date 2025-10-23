@@ -49,32 +49,32 @@ export const SidebarCalendar = ({ selectedDate, onDateSelect, className }: Sideb
           ),
           day: cn(
             'h-9 w-9 p-0 font-normal rounded-lg transition-colors hover:bg-gray-100 dark:hover:bg-gray-800',
-            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5F26B4] focus-visible:ring-offset-2'
+            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(330,81%,50%)] focus-visible:ring-offset-2'
           ),
           day_selected: cn(
-            'bg-[#5F26B4] text-white font-semibold hover:bg-[#5F26B4] hover:text-white',
-            'shadow-[0_2px_8px_rgba(95,38,180,0.3)]'
+            'bg-[hsl(330,81%,50%)] text-white font-semibold hover:bg-[hsl(330,81%,50%)] hover:text-white',
+            'shadow-[0_2px_8px_rgba(233,30,147,0.3)]'
           ),
-          day_today: 'border-2 border-[#5F26B4] font-medium',
+          day_today: 'border-2 border-[hsl(330,81%,50%)] font-medium',
           day_outside: 'text-muted-foreground opacity-50',
           day_disabled: 'text-muted-foreground opacity-30 cursor-not-allowed',
           day_hidden: 'invisible',
         }}
         components={{
-          IconLeft: () => <ChevronLeft className="h-4 w-4 text-[#5F26B4]" />,
-          IconRight: () => <ChevronRight className="h-4 w-4 text-[#5F26B4]" />,
+          IconLeft: () => <ChevronLeft className="h-4 w-4 text-[hsl(330,81%,50%)]" />,
+          IconRight: () => <ChevronRight className="h-4 w-4 text-[hsl(330,81%,50%)]" />,
         }}
         modifiers={{
           today: today,
         }}
         modifiersClassNames={{
-          today: !isSelected(today) ? 'border-2 border-[#5F26B4]' : '',
+          today: !isSelected(today) ? 'border-2 border-[hsl(330,81%,50%)]' : '',
         }}
       />
       
       {/* Selected Date Badge */}
       <div className="mt-auto pt-4 border-t">
-        <div className="bg-[#5F26B4] text-white rounded-xl px-4 py-2 text-center">
+        <div className="bg-[hsl(330,81%,50%)] text-white rounded-xl px-4 py-2 text-center">
           <p className="text-xs font-medium mb-1 opacity-90">Selected Date</p>
           <p className="text-sm font-semibold">
             {format(selectedDate, 'EEEE, MMMM dd, yyyy')}

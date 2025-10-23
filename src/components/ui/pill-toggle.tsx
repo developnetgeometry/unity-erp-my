@@ -21,7 +21,7 @@ export function PillToggle({ options, value, onChange, className }: PillTogglePr
     <div
       className={cn(
         "relative inline-flex items-center bg-white border-2 rounded-full p-1",
-        "border-[hsl(262,64%,43%)] shadow-[0_2px_6px_rgba(95,38,180,0.25)]",
+        "border-[hsl(330,81%,50%)] shadow-[0_2px_6px_rgba(233,30,147,0.25)]",
         "h-[40px] w-[180px]",
         className
       )}
@@ -30,7 +30,7 @@ export function PillToggle({ options, value, onChange, className }: PillTogglePr
     >
       {/* Animated background indicator */}
       <div
-        className="absolute top-1 bottom-1 rounded-full bg-[hsl(262,64%,43%)] transition-all duration-300 ease-in-out"
+        className="absolute top-1 bottom-1 rounded-full bg-[hsl(330,81%,50%)] transition-all duration-300 ease-in-out"
         style={{
           width: `calc(50% - 4px)`,
           left: activeIndex === 0 ? '4px' : 'calc(50% + 0px)',
@@ -51,11 +51,11 @@ export function PillToggle({ options, value, onChange, className }: PillTogglePr
             className={cn(
               "relative z-10 flex-1 flex items-center justify-center gap-1.5",
               "rounded-full font-medium text-xs transition-colors duration-300",
-              "focus:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(262,64%,43%)] focus-visible:ring-offset-2",
+              "focus:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(330,81%,50%)] focus-visible:ring-offset-2",
               "disabled:opacity-50 disabled:cursor-not-allowed",
               isActive
                 ? "text-white"
-                : "text-[hsl(262,64%,43%)] hover:bg-[hsl(262,64%,43%)]/10"
+                : "text-[hsl(330,81%,50%)] hover:bg-[hsl(330,81%,50%)]/10"
             )}
           >
             {option.icon && (

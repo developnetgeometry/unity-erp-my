@@ -11,25 +11,25 @@
 // ============================================================================
 
 export const colors = {
-  // Primary Deep Professional Blue - Main actions, primary states (#1e40af)
+  // Primary Vibrant Pink - Main actions, primary states (#C91880 / #E91E93)
   primary: {
-    DEFAULT: 'hsl(224 76% 39%)',
-    hover: 'hsl(224 76% 53%)',
-    light: 'hsl(214 95% 93%)',
+    DEFAULT: 'hsl(330 81% 40%)',
+    hover: 'hsl(330 81% 50%)',
+    light: 'hsl(330 81% 95%)',
     foreground: 'hsl(0 0% 100%)',
   },
   
-  // Secondary/Info Blue (#3B82F6)
+  // Secondary/Info Bright Pink (#E94FB2)
   secondary: {
-    DEFAULT: 'hsl(221 83% 53%)',
+    DEFAULT: 'hsl(320 75% 55%)',
     foreground: 'hsl(0 0% 100%)',
   },
   
-  // Purple Accent (#5F26B4) - Used for calendar highlights and special features
-  purple: {
-    DEFAULT: 'hsl(265 76% 43%)', // #5F26B4
-    hover: 'hsl(265 76% 50%)',
-    light: 'hsl(265 76% 95%)',
+  // Pink Accent (#E91E93) - Used for calendar highlights and special features
+  pink: {
+    DEFAULT: 'hsl(330 81% 50%)', // #E91E93
+    hover: 'hsl(330 81% 60%)',
+    light: 'hsl(330 81% 95%)',
     foreground: 'hsl(0 0% 100%)',
   },
   
@@ -206,7 +206,7 @@ export const accessibility = {
   // Focus indicators
   focus: {
     outlineWidth: '3px',
-    outlineColor: colors.secondary.DEFAULT,
+    outlineColor: colors.primary.DEFAULT,
     outlineOffset: '2px',
   },
   
