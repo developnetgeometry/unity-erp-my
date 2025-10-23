@@ -9,14 +9,17 @@ import { useOTClockIn } from '@/hooks/useAttendance';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/lib/toast-api';
+import { Progress } from '@/components/ui/progress';
 
 interface OTClockInButtonProps extends Omit<ButtonProps, 'onClick'> {
   attendanceRecordId: string;
+  hoursWorked?: number;
   onSuccess?: () => void;
 }
 
 export function OTClockInButton({
   attendanceRecordId,
+  hoursWorked = 0,
   onSuccess,
   variant = 'default',
   size = 'default',
@@ -30,6 +33,10 @@ export function OTClockInButton({
 
   const otClockIn = useOTClockIn();
   const { latitude, longitude, error: geoError, loading: geoLoading, requestLocation } = useGeolocation();
+
+  const canClockInOT = hoursWorked >= 9;
+  const hoursRemaining = Math.max(0, 9 - hoursWorked);
+  const progressPercentage = Math.min(100, (hoursWorked / 9) * 100);
 
   useEffect(() => {
     if (isDialogOpen) {
@@ -85,6 +92,11 @@ export function OTClockInButton({
   };
 
   const handleOTClockIn = async () => {
+    if (!canClockInOT) {
+      toast.error(`You must complete at least 9 working hours before starting overtime. ${hoursRemaining.toFixed(2)} hours remaining.`);
+      return;
+    }
+
     if (!selectedSite) {
       toast.error('Please select a work site');
       return;
@@ -129,11 +141,18 @@ export function OTClockInButton({
       <Button
         variant={variant}
         size={size}
-        onClick={() => setIsDialogOpen(true)}
+        onClick={() => {
+          if (!canClockInOT) {
+            toast.warning(`Complete ${hoursRemaining.toFixed(2)} more hours to start overtime`);
+            return;
+          }
+          setIsDialogOpen(true);
+        }}
+        disabled={!canClockInOT}
         {...props}
       >
         <Clock className="mr-2 h-4 w-4" />
-        Start Overtime
+        Start Overtime {!canClockInOT && `(${hoursRemaining.toFixed(1)}h left)`}
       </Button>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -141,9 +160,18 @@ export function OTClockInButton({
           <DialogHeader>
             <DialogTitle>Start Overtime Session</DialogTitle>
             <DialogDescription>
-              Select a work site to begin tracking your overtime hours
+              You've completed {hoursWorked.toFixed(2)} hours of work. Select a work site to begin tracking overtime.
             </DialogDescription>
           </DialogHeader>
+
+          {!canClockInOT && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                You must complete at least 9 working hours before starting overtime. You need {hoursRemaining.toFixed(2)} more hours.
+              </AlertDescription>
+            </Alert>
+          )}
 
           {hasActiveOT && (
             <Alert variant="destructive">
@@ -205,6 +233,7 @@ export function OTClockInButton({
             <Button
               onClick={handleOTClockIn}
               disabled={
+                !canClockInOT ||
                 !selectedSite ||
                 hasActiveOT ||
                 otClockIn.isPending ||

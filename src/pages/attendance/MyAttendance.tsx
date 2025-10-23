@@ -316,10 +316,47 @@ export default function MyAttendance() {
               Overtime
             </CardTitle>
             <CardDescription>
-              {activeOTSession ? 'You have an active overtime session' : 'Track overtime hours after your shift'}
+              {activeOTSession ? 'You have an active overtime session' : 'Complete 9 hours to start overtime'}
             </CardDescription>
           </CardHeader>
           <CardContent>
+            {/* Hours Worked Progress */}
+            {!activeOTSession && (
+              <div className="mb-4 p-4 bg-muted/50 rounded-lg border">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-sm font-medium">Hours Worked Today</span>
+                  <span className="text-lg font-bold">
+                    {status.attendance?.hours_worked?.toFixed(2) || '0.00'} / 9.0 hrs
+                  </span>
+                </div>
+                <div className="relative">
+                  <div className="w-full bg-secondary rounded-full h-3 overflow-hidden">
+                    <div
+                      className={`h-full transition-all duration-500 ${
+                        (status.attendance?.hours_worked || 0) >= 9
+                          ? 'bg-green-500'
+                          : 'bg-primary'
+                      }`}
+                      style={{
+                        width: `${Math.min(100, ((status.attendance?.hours_worked || 0) / 9) * 100)}%`,
+                      }}
+                    />
+                  </div>
+                </div>
+                {(status.attendance?.hours_worked || 0) < 9 && (
+                  <p className="text-xs text-muted-foreground mt-2">
+                    {(9 - (status.attendance?.hours_worked || 0)).toFixed(2)} hours remaining to start overtime
+                  </p>
+                )}
+                {(status.attendance?.hours_worked || 0) >= 9 && (
+                  <p className="text-xs text-green-600 dark:text-green-400 mt-2 flex items-center gap-1">
+                    <CheckCircle2 className="h-3 w-3" />
+                    Eligible for overtime
+                  </p>
+                )}
+              </div>
+            )}
+
             {activeOTSession ? (
               <div className="space-y-4">
                 <div className="flex items-center justify-between p-4 bg-primary/10 rounded-lg border border-primary/20">
@@ -340,11 +377,9 @@ export default function MyAttendance() {
               </div>
             ) : (
               <div className="space-y-3">
-                <p className="text-sm text-muted-foreground">
-                  You've completed your regular shift. Start tracking overtime if you're continuing to work.
-                </p>
                 <OTClockInButton
                   attendanceRecordId={status.attendance.id}
+                  hoursWorked={status.attendance?.hours_worked || 0}
                   onSuccess={() => fetchData()}
                   className="w-full"
                   size="lg"

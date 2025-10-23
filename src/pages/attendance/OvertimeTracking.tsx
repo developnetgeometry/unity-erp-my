@@ -67,6 +67,9 @@ export default function OvertimeTracking() {
   });
 
   const totalOTHours = thisMonthSessions.reduce((sum, s) => sum + (s.total_ot_hours || 0), 0);
+  const approvedOTHours = thisMonthSessions
+    .filter(s => s.is_approved)
+    .reduce((sum, s) => sum + (s.total_ot_hours || 0), 0);
   const pendingHours = thisMonthSessions
     .filter(s => s.status === 'completed' && !s.is_approved)
     .reduce((sum, s) => sum + (s.total_ot_hours || 0), 0);
@@ -151,15 +154,26 @@ export default function OvertimeTracking() {
       )}
 
       {/* Summary Cards */}
-      <div className="grid gap-6 md:grid-cols-3 mb-6">
+      <div className="grid gap-6 md:grid-cols-4 mb-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total OT Hours (This Month)</CardTitle>
+            <CardTitle className="text-sm font-medium">Total OT Hours</CardTitle>
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totalOTHours.toFixed(2)} hrs</div>
-            <p className="text-xs text-muted-foreground">{thisMonthSessions.length} sessions</p>
+            <p className="text-xs text-muted-foreground">This month</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Approved Hours</CardTitle>
+            <TrendingUp className="h-4 w-4 text-green-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600 dark:text-green-400">{approvedOTHours.toFixed(2)} hrs</div>
+            <p className="text-xs text-muted-foreground">Ready for payroll</p>
           </CardContent>
         </Card>
 
