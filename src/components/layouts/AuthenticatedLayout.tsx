@@ -2,8 +2,13 @@ import { Outlet } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { SessionDebug } from "@/components/debug/SessionDebug";
+import { NotificationBell } from "@/components/navbar/NotificationBell";
+import { UserProfileMenu } from "@/components/navbar/UserProfileMenu";
+import { useRole } from "@/contexts/RoleContext";
 
 const AuthenticatedLayout = () => {
+  const { activeRole } = useRole();
+
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full">
@@ -12,6 +17,12 @@ const AuthenticatedLayout = () => {
           <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b border-border bg-background/95 backdrop-blur px-6 supports-[backdrop-filter]:bg-background/60">
             <SidebarTrigger />
             <div className="flex-1" />
+            
+            {/* Top Navigation - Always visible */}
+            <div className="flex items-center gap-2">
+              <NotificationBell />
+              <UserProfileMenu />
+            </div>
           </header>
           <div className="container py-6">
             <SessionDebug />
