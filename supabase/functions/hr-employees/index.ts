@@ -100,44 +100,68 @@ serve(async (req) => {
         });
       }
 
-      const { data: lastEmployee } = await supabase
+      // Get all employee numbers for this company and find the max
+      const { data: employees } = await supabase
         .from('employees')
         .select('employee_number')
-        .eq('company_id', profile.company_id)
-        .order('employee_number', { ascending: false })
-        .limit(1)
-        .maybeSingle();
+        .eq('company_id', profile.company_id);
 
-      let newEmployeeNumber = 'EMP0001';
-      if (lastEmployee?.employee_number) {
-        const lastNum = parseInt(lastEmployee.employee_number.replace('EMP', ''));
-        newEmployeeNumber = 'EMP' + String(lastNum + 1).padStart(4, '0');
+      // Extract numeric values, find max, and generate next number
+      let maxNumber = 0;
+      if (employees && employees.length > 0) {
+        employees.forEach(emp => {
+          if (emp.employee_number) {
+            const numStr = emp.employee_number.replace(/\D/g, ''); // Remove non-digits
+            const num = parseInt(numStr) || 0;
+            if (num > maxNumber) {
+              maxNumber = num;
+            }
+          }
+        });
       }
 
-      const { data, error } = await supabase
-        .from('employees')
-        .insert({
-          company_id: profile.company_id,
-          employee_number: newEmployeeNumber,
-          full_name: body.full_name,
-          ic_number: body.ic_number || null,
-          email: body.email || null,
-          phone: body.phone || null,
-          position: body.position,
-          department_id: body.department_id || null,
-          branch_id: body.branch_id || null,
-          join_date: body.join_date,
-          status: body.status || 'Active',
-        })
-        .select()
-        .single();
+      const newEmployeeNumber = 'EMP' + String(maxNumber + 1).padStart(4, '0');
 
-      if (error) throw error;
+      try {
+        const { data, error } = await supabase
+          .from('employees')
+          .insert({
+            company_id: profile.company_id,
+            employee_number: newEmployeeNumber,
+            full_name: body.full_name,
+            ic_number: body.ic_number || null,
+            email: body.email || null,
+            phone: body.phone || null,
+            position: body.position,
+            department_id: body.department_id || null,
+            branch_id: body.branch_id || null,
+            join_date: body.join_date,
+            status: body.status || 'Active',
+          })
+          .select()
+          .single();
 
-      return new Response(JSON.stringify({ employee: data }), {
-        status: 201,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+        if (error) throw error;
+
+        return new Response(JSON.stringify({ employee: data }), {
+          status: 201,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      } catch (error: any) {
+        console.error('Employee creation error:', error);
+        
+        // Handle duplicate employee number
+        if (error.code === '23505') {
+          return new Response(JSON.stringify({ 
+            error: 'Employee number conflict. Please try again.' 
+          }), { 
+            status: 409, 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          });
+        }
+        
+        throw error;
+      }
     }
 
     // PATCH /hr-employees/:id
