@@ -4,6 +4,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'GET, POST, PATCH, DELETE, OPTIONS',
 };
 
 serve(async (req) => {
@@ -213,6 +214,7 @@ serve(async (req) => {
     const deleteMatch = path.match(/\/hr-employees\/([a-f0-9-]+)$/);
     if (method === 'DELETE' && deleteMatch) {
       const employeeId = deleteMatch[1];
+      console.log('DELETE request for employee:', employeeId);
 
       const { data: roles } = await supabase
         .from('user_roles')
@@ -221,21 +223,29 @@ serve(async (req) => {
 
       const isAdmin = roles?.some(r => ['company_admin', 'super_admin'].includes(r.role));
       if (!isAdmin) {
+        console.log('DELETE denied: Insufficient permissions for user:', user.id);
         return new Response(JSON.stringify({ error: 'Insufficient permissions' }), { 
           status: 403, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
         });
       }
 
+      console.log('Attempting to delete employee:', { employeeId, companyId: profile.company_id });
+      
       const { error } = await supabase
         .from('employees')
         .delete()
         .eq('id', employeeId)
         .eq('company_id', profile.company_id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('DELETE failed:', error);
+        throw error;
+      }
 
+      console.log('Employee deleted successfully:', employeeId);
       return new Response(JSON.stringify({ success: true }), {
+        status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
