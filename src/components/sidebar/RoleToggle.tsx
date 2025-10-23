@@ -1,5 +1,5 @@
-import { UserCog, Loader2, ShieldCheck, User } from "lucide-react";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { Loader2, ShieldCheck, User } from "lucide-react";
+import { PillToggle } from "@/components/ui/pill-toggle";
 import { useRole } from "@/contexts/RoleContext";
 
 export function RoleToggle() {
@@ -25,36 +25,23 @@ export function RoleToggle() {
   }
 
   return (
-    <div className="space-y-2">
-      <div className="flex items-center gap-2 px-1">
-        <UserCog className="h-4 w-4 text-primary" />
-        <span className="text-xs font-medium text-muted-foreground">View As</span>
-      </div>
-      <ToggleGroup 
-        type="single" 
+    <div className="flex justify-center px-3">
+      <PillToggle
         value={activeRole}
-        onValueChange={(value) => {
-          if (value) switchRole(value as 'super_admin' | 'employee');
-        }}
-        className="grid grid-cols-2 gap-2"
-      >
-        <ToggleGroupItem 
-          value="super_admin" 
-          aria-label="Super Admin View"
-          className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
-        >
-          <ShieldCheck className="h-4 w-4 mr-2" />
-          <span className="text-xs">Admin</span>
-        </ToggleGroupItem>
-        <ToggleGroupItem 
-          value="employee" 
-          aria-label="Employee View"
-          className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
-        >
-          <User className="h-4 w-4 mr-2" />
-          <span className="text-xs">Employee</span>
-        </ToggleGroupItem>
-      </ToggleGroup>
+        onChange={(value) => switchRole(value as 'super_admin' | 'employee')}
+        options={[
+          {
+            label: "Admin",
+            value: "super_admin",
+            icon: <ShieldCheck className="h-4 w-4" />
+          },
+          {
+            label: "Employee",
+            value: "employee",
+            icon: <User className="h-4 w-4" />
+          }
+        ]}
+      />
     </div>
   );
 }
