@@ -1,11 +1,5 @@
-import { UserCog, Loader2 } from "lucide-react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { UserCog, Loader2, ShieldCheck, User } from "lucide-react";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { useRole } from "@/contexts/RoleContext";
 
 export function RoleToggle() {
@@ -24,27 +18,43 @@ export function RoleToggle() {
   if (!canAccessAdminFeatures) {
     return (
       <div className="flex items-center gap-3 p-3 border border-border rounded-lg bg-background">
-        <UserCog className="h-4 w-4 text-primary" />
+        <User className="h-4 w-4 text-primary" />
         <span className="text-sm font-medium text-foreground">Employee View</span>
       </div>
     );
   }
 
   return (
-    <div className="flex items-center gap-3 p-3 border border-border rounded-lg bg-background">
-      <UserCog className="h-4 w-4 text-primary" />
-      <Select
+    <div className="space-y-2">
+      <div className="flex items-center gap-2 px-1">
+        <UserCog className="h-4 w-4 text-primary" />
+        <span className="text-xs font-medium text-muted-foreground">View As</span>
+      </div>
+      <ToggleGroup 
+        type="single" 
         value={activeRole}
-        onValueChange={(value) => switchRole(value as 'super_admin' | 'employee')}
+        onValueChange={(value) => {
+          if (value) switchRole(value as 'super_admin' | 'employee');
+        }}
+        className="grid grid-cols-2 gap-2"
       >
-        <SelectTrigger className="border-0 h-auto p-0 focus:ring-0 text-sm font-medium">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="super_admin">Super Admin</SelectItem>
-          <SelectItem value="employee">Employee</SelectItem>
-        </SelectContent>
-      </Select>
+        <ToggleGroupItem 
+          value="super_admin" 
+          aria-label="Super Admin View"
+          className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+        >
+          <ShieldCheck className="h-4 w-4 mr-2" />
+          <span className="text-xs">Admin</span>
+        </ToggleGroupItem>
+        <ToggleGroupItem 
+          value="employee" 
+          aria-label="Employee View"
+          className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+        >
+          <User className="h-4 w-4 mr-2" />
+          <span className="text-xs">Employee</span>
+        </ToggleGroupItem>
+      </ToggleGroup>
     </div>
   );
 }
