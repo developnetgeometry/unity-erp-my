@@ -134,27 +134,44 @@ export const useDeleteEmployee = () => {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error('Not authenticated');
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) throw new Error('Not authenticated');
 
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+        const supabaseAnonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
-      const response = await fetch(
-        `${supabaseUrl}/functions/v1/hr-employees/${id}`,
-        {
-          method: 'DELETE',
-          headers: {
-            'Authorization': `Bearer ${session.access_token}`,
-            'apikey': supabaseAnonKey,
-            'Content-Type': 'application/json',
-          },
+        console.log('Deleting employee:', { id, url: `${supabaseUrl}/functions/v1/hr-employees/${id}` });
+
+        const response = await fetch(
+          `${supabaseUrl}/functions/v1/hr-employees/${id}`,
+          {
+            method: 'DELETE',
+            headers: {
+              'Authorization': `Bearer ${session.access_token}`,
+              'apikey': supabaseAnonKey,
+              'Content-Type': 'application/json',
+            },
+          }
+        );
+
+        console.log('Delete response:', { status: response.status, ok: response.ok });
+
+        if (!response.ok) {
+          let errorMessage = 'Failed to delete employee';
+          try {
+            const errorData = await response.json();
+            errorMessage = errorData.error || errorMessage;
+          } catch (e) {
+            errorMessage = `Server error: ${response.status} ${response.statusText}`;
+          }
+          throw new Error(errorMessage);
         }
-      );
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to delete employee');
+        return { success: true };
+      } catch (error: any) {
+        console.error('Delete error:', error);
+        throw new Error(error.message || 'Network error occurred');
       }
     },
     onSuccess: () => {
