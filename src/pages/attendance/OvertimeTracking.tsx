@@ -239,7 +239,7 @@ export default function OvertimeTracking() {
                 </TableHeader>
                 <TableBody>
                   {sessions.map((session) => (
-                    <TableRow key={session.id}>
+                    <TableRow key={session.id} className={session.rejection_reason ? 'bg-destructive/5' : ''}>
                       <TableCell>{format(new Date(session.ot_in_time), 'MMM d, yyyy')}</TableCell>
                       <TableCell>{session.work_sites?.site_name || 'N/A'}</TableCell>
                       <TableCell>{format(new Date(session.ot_in_time), 'h:mm a')}</TableCell>
@@ -261,9 +261,22 @@ export default function OvertimeTracking() {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <Badge variant={session.is_approved ? 'default' : 'outline'}>
-                          {session.is_approved ? 'Approved' : 'Pending'}
-                        </Badge>
+                        <div className="space-y-1">
+                          <Badge variant={
+                            session.rejection_reason ? 'destructive' : 
+                            session.is_approved ? 'default' : 
+                            'outline'
+                          }>
+                            {session.rejection_reason ? 'Rejected' : 
+                             session.is_approved ? 'Approved' : 
+                             'Pending'}
+                          </Badge>
+                          {session.rejection_reason && (
+                            <p className="text-xs text-destructive mt-1">
+                              {session.rejection_reason}
+                            </p>
+                          )}
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}

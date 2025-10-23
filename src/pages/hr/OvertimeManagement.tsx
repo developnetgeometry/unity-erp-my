@@ -315,12 +315,12 @@ export default function OvertimeManagement() {
                     <TableHead>Date</TableHead>
                     <TableHead>Total Hours</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead>Approved</TableHead>
+                    <TableHead>Approval Status</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {sessions.map((session) => (
-                    <TableRow key={session.id}>
+                    <TableRow key={session.id} className={session.rejection_reason ? 'bg-destructive/5' : ''}>
                       <TableCell className="font-medium">{session.employees?.full_name}</TableCell>
                       <TableCell>{session.employees?.position || 'N/A'}</TableCell>
                       <TableCell>{format(new Date(session.ot_in_time), 'MMM d, yyyy')}</TableCell>
@@ -335,9 +335,22 @@ export default function OvertimeManagement() {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <Badge variant={session.is_approved ? 'default' : 'outline'}>
-                          {session.is_approved ? 'Yes' : 'No'}
-                        </Badge>
+                        <div className="space-y-1">
+                          <Badge variant={
+                            session.rejection_reason ? 'destructive' : 
+                            session.is_approved ? 'default' : 
+                            'outline'
+                          }>
+                            {session.rejection_reason ? 'Rejected' : 
+                             session.is_approved ? 'Approved' : 
+                             'Pending'}
+                          </Badge>
+                          {session.rejection_reason && (
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Reason: {session.rejection_reason}
+                            </p>
+                          )}
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}

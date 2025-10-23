@@ -39,6 +39,7 @@ export interface OvertimeSession {
   total_ot_hours: number;
   status: string;
   is_approved: boolean;
+  rejection_reason: string | null;
   work_sites: {
     site_name: string;
   };
