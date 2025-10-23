@@ -199,13 +199,16 @@ const EmployeeManagement = () => {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => setEditingEmployee(employee)}>
+                      <DropdownMenuItem 
+                        onSelect={() => setEditingEmployee(employee)}
+                        className="cursor-pointer"
+                      >
                         <Edit className="mr-2 h-4 w-4" />
                         Edit
                       </DropdownMenuItem>
                       <DropdownMenuItem
-                        className="text-destructive"
-                        onClick={() => setDeletingEmployee(employee)}
+                        className="text-destructive cursor-pointer"
+                        onSelect={() => setDeletingEmployee(employee)}
                       >
                         <Trash2 className="mr-2 h-4 w-4" />
                         Delete
